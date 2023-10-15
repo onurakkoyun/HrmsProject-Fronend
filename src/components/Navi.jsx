@@ -54,20 +54,22 @@ const Navi = () => {
   }, [currentUser]);
 
   const loadUserPhoto = async () => {
-    try {
-      let userService = new UserService();
-      const response = await userService.getUserPhotoById(currentUser.id);
+    if (currentUser !== null) {
+      try {
+        let userService = new UserService();
+        const response = await userService.getUserPhotoById(currentUser.id);
 
-      if (response.status === 200) {
-        const imageBlob = response.data;
-        const imageUrl = URL.createObjectURL(imageBlob);
-        setProfilePhoto(imageUrl);
+        if (response.status === 200) {
+          const imageBlob = response.data;
+          const imageUrl = URL.createObjectURL(imageBlob);
+          setProfilePhoto(imageUrl);
+        }
+      } catch (error) {
+        console.error(
+          "An error occurred while retrieving the profile photo.",
+          error.response // Daha fazla ayrıntı için yanıtı logla
+        );
       }
-    } catch (error) {
-      console.error(
-        "Profil fotoğrafı alınırken bir hata oluştu.",
-        error.response // Daha fazla ayrıntı için yanıtı logla
-      );
     }
   };
 

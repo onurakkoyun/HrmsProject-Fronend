@@ -16,9 +16,9 @@ export default class ExperienceService {
     );
   };
 
-  getExperienceById = (experienceId) => {
+  getExperienceById = (resumeId) => {
     return axios.get(
-      `http://localhost:8080/api/experiences/getExperienceById/${experienceId}`,
+      `http://localhost:8080/api/experiences/getExperienceById/${resumeId}`,
       {
         headers: authHeader(),
       }

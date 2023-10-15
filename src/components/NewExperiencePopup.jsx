@@ -169,7 +169,7 @@ export default function NewExperiencePopup({
               <div className="mb-4">
                 <div className="flex flex-col">
                   <label
-                    className="text-md text-gray-800"
+                    className="font-poppins font-medium text-md text-gray-800"
                     htmlFor="companyName"
                   >
                     <span>Company Name</span>
@@ -202,7 +202,10 @@ export default function NewExperiencePopup({
               </div>
               <div className="mb-4">
                 <div className="flex flex-col">
-                  <label className="text-md text-gray-800" htmlFor="jobTitle">
+                  <label
+                    className="font-poppins font-medium text-md text-gray-800"
+                    htmlFor="jobTitle"
+                  >
                     <span>Job Title</span>
                   </label>
 
@@ -212,9 +215,9 @@ export default function NewExperiencePopup({
                       handleChange("jobTitle.titleId", event.target.value)
                     }
                     value={formik.values.jobTitle?.titleId || ""}
-                    className="w-[432px] mt-1 rounded-lg border bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shadow-sm"
+                    className="w-[432px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shadow-sm"
                   >
-                    <option value="">Select a job title</option>
+                    <option value="">Select a job title...</option>
                     {jobTitles.map((jobTitle) => (
                       <option key={jobTitle.titleId} value={jobTitle.titleId}>
                         {jobTitle.jobTitleName}
@@ -240,7 +243,7 @@ export default function NewExperiencePopup({
                 <div className="w-1/2">
                   <div className="flex flex-col mr-[18px]">
                     <label
-                      className="text-md text-gray-800"
+                      className="font-poppins font-medium text-md text-gray-800"
                       htmlFor="experienceStart"
                     >
                       <span>Starting Date</span>
@@ -274,7 +277,7 @@ export default function NewExperiencePopup({
                 <div className="w-1/2">
                   <div className="flex flex-col">
                     <label
-                      className="text-md text-gray-800"
+                      className="font-poppins font-medium text-md text-gray-800"
                       htmlFor="experienceEnd"
                     >
                       <span>Ending Date</span>
@@ -309,7 +312,7 @@ export default function NewExperiencePopup({
               <div className="mb-4">
                 <div className="flex flex-col mr-[10px]">
                   <label
-                    className="text-md text-gray-800"
+                    className="font-poppins font-medium text-md text-gray-800"
                     htmlFor="companySector"
                   >
                     <span>Company Sector</span>
@@ -344,7 +347,10 @@ export default function NewExperiencePopup({
               <div className="flex flex-row mb-4">
                 <div className="w-1/2">
                   <div className="flex flex-col mr-[18px]">
-                    <label className="text-md text-gray-800" htmlFor="cityName">
+                    <label
+                      className="font-poppins font-medium text-md text-gray-800"
+                      htmlFor="cityName"
+                    >
                       <span>City</span>
                     </label>
 
@@ -375,7 +381,10 @@ export default function NewExperiencePopup({
                 </div>
                 <div className="w-1/2">
                   <div className="flex flex-col">
-                    <label className="text-md text-gray-800" htmlFor="jobTitle">
+                    <label
+                      className="font-poppins font-medium text-md text-gray-800"
+                      htmlFor="jobTitle"
+                    >
                       <span>Working Type</span>
                     </label>
 
@@ -388,7 +397,7 @@ export default function NewExperiencePopup({
                         )
                       }
                       value={formik.values.workingType?.workingTypeId || ""}
-                      className="w-[212px] mt-1 rounded-lg border bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shadow-sm"
+                      className="w-[212px] mt-1 rounded-md border border-gray-500 focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shadow-sm"
                     >
                       <option value="">Select a job title</option>
                       {workingTypes.map((workingType) => (
@@ -419,9 +428,9 @@ export default function NewExperiencePopup({
               </div>
             </div>
             <div className="w-1/2 grid justify-items-start">
-              <div>
+              <div className="w-[462px]">
                 <div
-                  className="text-md text-gray-800 ml-0.5 mb-1"
+                  className="font-poppins font-medium text-md text-gray-800 ml-0.5 mb-1"
                   htmlFor="companyName"
                 >
                   Job Description:
@@ -441,8 +450,8 @@ export default function NewExperiencePopup({
                     ],
                     toolbar:
                       "undo redo | formatselect | bold italic backcolor | \
-            alignleft aligncenter alignright alignjustify | \
-            bullist numlist outdent indent | removeformat | help",
+                      aligncenter alignright alignjustify | \
+                      bullist numlist outdent indent | removeformat | help",
                   }}
                   onEditorChange={(content) =>
                     formik.setFieldValue("jobDescription", content)
@@ -470,12 +479,21 @@ export default function NewExperiencePopup({
           </div>
           <Divider />
 
-          <div className="flex justify-end mt-2 mb-2 mr-2">
+          <div className="flex justify-end mt-2 mb-2 mr-5">
+            <button
+              type="cancel"
+              className="inline-block rounded mr-2 px-3 py-2 text-medium font-medium text-white hover:bg-shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-400 bg-red-600 hover:bg-red-800"
+              onClick={() => {
+                handleModal(false);
+              }}
+            >
+              Cancel
+            </button>
             <button
               type="submit"
               className="inline-block rounded px-3 py-2 text-medium font-medium text-white hover:bg-shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-400 bg-green-600 hover:bg-green-800"
             >
-              Create Experience
+              Save
             </button>
           </div>
 
@@ -483,7 +501,7 @@ export default function NewExperiencePopup({
             <ResumeSubmitPopup
               message={{
                 title: "Changes saved",
-                content: "Experience created successfully",
+                content: message,
               }}
               handleDismissPopup={handleDismissPopup}
             />

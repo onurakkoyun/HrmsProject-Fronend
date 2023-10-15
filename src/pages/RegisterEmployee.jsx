@@ -41,12 +41,6 @@ export default function RegisterEmployee() {
     confirmPassword: "",
   };
 
-  const formik = useFormik({
-    initialValues: initialValues,
-    validationSchema: validationSchema,
-    onSubmit: onSubmit,
-  });
-
   const validationSchema = Yup.object({
     firstName: Yup.string().required("Required Field"),
     lastName: Yup.string().required("Required Field"),
@@ -100,6 +94,12 @@ export default function RegisterEmployee() {
       handleModal(true);
     }
   };
+
+  const formik = useFormik({
+    initialValues: initialValues,
+    validationSchema: validationSchema,
+    onSubmit: onSubmit,
+  });
 
   const handleModal = (value) => {
     if (!value) {

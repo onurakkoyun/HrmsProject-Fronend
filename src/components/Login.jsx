@@ -68,7 +68,7 @@ export default function Login() {
         validationSchema={validationSchema} // Use Yup's validation schema
       >
         {({ handleSubmit }) => (
-          <div className="mx-auto mt-8 max-w-screen-xl px-4 py-16 xl:ml-8 sm:px-4 md:px-6 lg:px-8">
+          <div className="mx-auto mt-8 max-w-screen-xl px-4 py-16 xl:justify-center sm:px-4 md:px-6 lg:px-8">
             <div className="mx-auto max-w-xl">
               <h1 className="text-center text-xl font-bold text-indigo-600 sm:text-3xl">
                 Get started today
