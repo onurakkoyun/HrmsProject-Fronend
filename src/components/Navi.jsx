@@ -1,77 +1,85 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { clearMessage } from "../actions/message";
-import { logout } from "../actions/auth";
-import SignUp from "../components/SignUp";
-import { Link } from "react-router-dom";
-import "../App.css";
-import { Menu, Container, Header, Dropdown, Icon } from "semantic-ui-react";
-import { Button } from "@material-tailwind/react";
-import defaultProfilePhoto from "../images/default-profile.svg.png";
-import UserService from "../services/userService";
+import React, { useState, useEffect, useCallback } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
+import { clearMessage } from '../actions/message'
+import { logout } from '../actions/auth'
+import SignUp from '../components/SignUp'
+import { Link } from 'react-router-dom'
+import '../App.css'
+import { Menu, Container, Header, Dropdown } from 'semantic-ui-react'
+import { Button } from '@material-tailwind/react'
+import defaultProfilePhoto from '../images/default-profile.svg.png'
+import UserService from '../services/userService'
+import {
+  faCircleUser,
+  faTableList,
+  faCircleQuestion,
+  faGears,
+  faRightFromBracket,
+  faEarthAmericas,
+} from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 const Navi = () => {
-  const [showEmployeeBoard, setShowEmployeeBoard] = useState(false);
-  const [showEmployerBoard, setShowEmployerBoard] = useState(false);
-  const [showAdminBoard, setShowAdminBoard] = useState(false);
-  const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
-  const [profilePhoto, setProfilePhoto] = useState("");
+  const [showEmployeeBoard, setShowEmployeeBoard] = useState(false)
+  const [showEmployerBoard, setShowEmployerBoard] = useState(false)
+  const [showAdminBoard, setShowAdminBoard] = useState(false)
+  const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false)
+  const [profilePhoto, setProfilePhoto] = useState('')
 
-  let navigate = useNavigate();
+  let navigate = useNavigate()
 
-  const { user: currentUser } = useSelector((state) => state.auth);
-  const dispatch = useDispatch();
+  const { user: currentUser } = useSelector((state) => state.auth)
+  const dispatch = useDispatch()
 
-  let location = useLocation();
+  let location = useLocation()
   useEffect(() => {
-    if (["/login", "/register"].includes(location.pathname)) {
-      dispatch(clearMessage()); // clear message when changing location
+    if (['/login', '/register'].includes(location.pathname)) {
+      dispatch(clearMessage()) // clear message when changing location
     }
-  }, [dispatch, location]);
+  }, [dispatch, location])
 
   const handleSignUpClick = () => {
-    setIsSignUpModalOpen(true);
-  };
+    setIsSignUpModalOpen(true)
+  }
 
   const logOut = useCallback(() => {
-    dispatch(logout());
-    navigate("/");
-  }, [dispatch, navigate]);
+    dispatch(logout())
+    navigate('/')
+  }, [dispatch, navigate])
 
   useEffect(() => {
-    loadUserPhoto();
     if (currentUser) {
-      console.log(currentUser);
-      setShowEmployeeBoard(currentUser.roles.includes("ROLE_EMPLOYEE"));
-      setShowEmployerBoard(currentUser.roles.includes("ROLE_EMPLOYER"));
-      setShowAdminBoard(currentUser.roles.includes("ROLE_ADMIN"));
+      console.log(currentUser)
+      loadUserPhoto()
+
+      setShowEmployeeBoard(currentUser.roles.includes('ROLE_EMPLOYEE'))
+      setShowEmployerBoard(currentUser.roles.includes('ROLE_EMPLOYER'))
+      setShowAdminBoard(currentUser.roles.includes('ROLE_ADMIN'))
     } else {
-      setShowEmployeeBoard(false);
-      setShowEmployerBoard(false);
-      setShowAdminBoard(false);
+      setShowEmployeeBoard(false)
+      setShowEmployerBoard(false)
+      setShowAdminBoard(false)
     }
-  }, [currentUser]);
+  }, [currentUser])
 
   const loadUserPhoto = async () => {
-    if (currentUser !== null) {
-      try {
-        let userService = new UserService();
-        const response = await userService.getUserPhotoById(currentUser.id);
+    try {
+      let userService = new UserService()
+      const response = await userService.getUserPhotoById(currentUser.id)
 
-        if (response.status === 200) {
-          const imageBlob = response.data;
-          const imageUrl = URL.createObjectURL(imageBlob);
-          setProfilePhoto(imageUrl);
-        }
-      } catch (error) {
-        console.error(
-          "An error occurred while retrieving the profile photo.",
-          error.response // Daha fazla ayrıntı için yanıtı logla
-        );
+      if (response.status === 200) {
+        const imageBlob = response.data
+        const imageUrl = URL.createObjectURL(imageBlob)
+        setProfilePhoto(imageUrl)
       }
+    } catch (error) {
+      console.error(
+        'An error occurred while retrieving the profile photo.',
+        error.response, // Daha fazla ayrıntı için yanıtı logla
+      )
     }
-  };
+  }
 
   return (
     <div>
@@ -86,14 +94,14 @@ const Navi = () => {
             />
           </Menu.Item>
           <Menu.Item
-            className="nav-menu-item"
+            className="nav-menu-item font-mulish font-bold"
             as={Link}
             to="/home"
             icon="sun"
             content="Home"
           />
           <Menu.Item
-            className="nav-menu-item"
+            className="nav-menu-item font-mulish font-bold"
             as={Link}
             to="/jobPostings/listall"
             icon="compass"
@@ -101,7 +109,7 @@ const Navi = () => {
           />
 
           <Menu.Item
-            className="nav-menu-item"
+            className="nav-menu-item font-mulish font-bold"
             as={Link}
             to="/employers"
             icon="building"
@@ -113,12 +121,12 @@ const Navi = () => {
               as={Link}
               to={`employer/${currentUser.id}/jobPosting/add`}
               icon="paper plane"
-              content="Post a Job"
+              content="Post a Job Ad"
             />
           )}
 
           <Menu.Item
-            className="nav-menu-item"
+            className="nav-menu-item font-mulish font-bold"
             as={Link}
             to="/aboutUs"
             icon="heart"
@@ -129,16 +137,20 @@ const Navi = () => {
               <>
                 <div className="mt-2">
                   <p className="ms-2 mr-1 hidden text-left text-xs sm:block">
-                    <strong className="block font-medium">
+                    <strong className="block font-mulish font-medium">
                       {currentUser.username}
                     </strong>
 
-                    <span className="text-gray-500 mr-1">
-                      {" "}
+                    <span className="font-mulish font-medium text-gray-500 mr-1">
+                      {' '}
                       {currentUser.email}
                     </span>
                   </p>
                 </div>
+                <span
+                  aria-hidden="true"
+                  className="block h-3 w-px bg-red-500"
+                ></span>
                 <Dropdown
                   trigger={
                     <div className="mt-2 rounded-full border-2 border-blue-500">
@@ -178,71 +190,124 @@ const Navi = () => {
                       </button>
                     </div>
                   }
-                  icon={{ icon: "null" }}
+                  icon={{ icon: 'null' }}
                 >
-                  <Dropdown.Menu>
+                  <Dropdown.Menu className="font-mulish font-bold">
                     <Dropdown.Header>
                       Logged in as {currentUser.username}
                     </Dropdown.Header>
-
                     {showEmployeeBoard && (
-                      <Dropdown.Item
-                        as={Link}
-                        to={`/employee/${currentUser.id}/profile`}
-                      >
-                        <Icon name="user circle" />
-                        Profile
-                      </Dropdown.Item>
+                      <div className="hover:bg-blue-400 group">
+                        <Dropdown.Item
+                          as={Link}
+                          to={`/employee/${currentUser.id}/profile`}
+                        >
+                          <span className="flex group-hover:text-white">
+                            <FontAwesomeIcon
+                              icon={faCircleUser}
+                              className="mr-2"
+                            />
+                            Profile
+                          </span>
+                        </Dropdown.Item>
+                      </div>
                     )}
                     {showEmployerBoard && (
-                      <Dropdown.Item
-                        as={Link}
-                        to={`/employer/${currentUser.id}/profile`}
-                      >
-                        <Icon name="user circle" />
-                        Profile
-                      </Dropdown.Item>
+                      <div className="hover:bg-blue-400 group">
+                        <Dropdown.Item
+                          as={Link}
+                          to={`/employer/${currentUser.id}/profile`}
+                        >
+                          <span className="flex group-hover:text-white">
+                            <FontAwesomeIcon
+                              icon={faCircleUser}
+                              className="mr-2"
+                            />
+                            Profile
+                          </span>
+                        </Dropdown.Item>
+                      </div>
                     )}
                     {showEmployerBoard && (
-                      <Dropdown.Item
-                        as={Link}
-                        to={`/employer/${currentUser.id}/jobpostings`}
-                      >
-                        <Icon name="user circle" />
-                        Published Job Postings
-                      </Dropdown.Item>
+                      <div className="hover:bg-blue-400 group">
+                        <Dropdown.Item
+                          as={Link}
+                          to={`/employer/${currentUser.id}/jobpostingsList`}
+                        >
+                          <span className="flex group-hover:text-white">
+                            <FontAwesomeIcon
+                              icon={faEarthAmericas}
+                              className="mr-2"
+                            />
+                            Published Job Postings
+                          </span>
+                        </Dropdown.Item>
+                      </div>
                     )}
                     {showAdminBoard && (
-                      <Dropdown.Item
-                        as={Link}
-                        to={`/admin/${currentUser.id}/profile`}
-                      >
-                        <Icon name="user circle" />
-                        Profile
-                      </Dropdown.Item>
+                      <div className="hover:bg-blue-400 group">
+                        <Dropdown.Item
+                          as={Link}
+                          to={`/admin/${currentUser.id}/profile`}
+                        >
+                          <span className="flex group-hover:text-white">
+                            <FontAwesomeIcon
+                              icon={faCircleUser}
+                              className="mr-2"
+                            />
+                            Profile
+                          </span>
+                        </Dropdown.Item>
+                      </div>
                     )}
                     {showEmployeeBoard && (
-                      <Dropdown.Item
-                        as={Link}
-                        to={`/employee/${currentUser.id}/resumes`}
-                      >
-                        <Icon name="address card" />
-                        Resume List
-                      </Dropdown.Item>
+                      <div className="hover:bg-blue-400 group">
+                        <Dropdown.Item
+                          as={Link}
+                          to={`/employee/${currentUser.id}/resumes`}
+                        >
+                          <span className="flex group-hover:text-white">
+                            <FontAwesomeIcon
+                              icon={faTableList}
+                              className="mr-2"
+                            />
+                            Resume List
+                          </span>
+                        </Dropdown.Item>
+                      </div>
                     )}
-                    <Dropdown.Item>
-                      <Icon name="help" />
-                      Help
-                    </Dropdown.Item>
-                    <Dropdown.Item>
-                      <Icon name="settings" />
-                      Settings
-                    </Dropdown.Item>
+                    <div className="hover:bg-blue-400 group">
+                      <Dropdown.Item as={Link} to="">
+                        <span className="flex group-hover:text-white">
+                          <FontAwesomeIcon
+                            icon={faCircleQuestion}
+                            className="mr-2"
+                          />
+                          Help
+                        </span>
+                      </Dropdown.Item>
+                    </div>
+                    <div className="hover:bg-blue-400 group">
+                      <Dropdown.Item as={Link} to="">
+                        <span className="flex group-hover:text-white">
+                          <FontAwesomeIcon icon={faGears} className="mr-2" />
+                          Settings
+                        </span>
+                      </Dropdown.Item>
+                    </div>
                     <Dropdown.Divider />
-                    <Dropdown.Item onClick={logOut}>
-                      <Icon name="sign-out alternate" />
-                      Log out
-                    </Dropdown.Item>
+
+                    <div className="rounded-md hover:bg-red-50 hover:cursor-pointer group">
+                      <Dropdown.Item onClick={logOut}>
+                        <span className="flex group-hover:text-red-500">
+                          <FontAwesomeIcon
+                            icon={faRightFromBracket}
+                            className="mr-3"
+                          />
+                          Log out
+                        </span>
+                      </Dropdown.Item>
+                    </div>
                   </Dropdown.Menu>
                 </Dropdown>
               </>
@@ -280,7 +345,7 @@ const Navi = () => {
         </Container>
       </Menu>
     </div>
-  );
-};
+  )
+}
 
-export default Navi;
+export default Navi

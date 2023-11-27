@@ -1,120 +1,117 @@
-import React from "react";
-import { useEffect } from "react";
-import { useState } from "react";
-import { Form, Formik, useFormik } from "formik";
-import * as Yup from "yup";
-import { Divider, Label, Modal } from "semantic-ui-react";
-import { useParams } from "react-router-dom";
-import ExperienceService from "../services/experienceService";
-import ResumeSubmitPopup from "./ResumeSubmitPopup";
-import { Editor } from "@tinymce/tinymce-react";
-import { useRef } from "react";
-import JobTitleService from "../services/jobTitleService";
-import WorkingTypeService from "../services/workingTypeService";
+import React from 'react'
+import { useEffect } from 'react'
+import { useState } from 'react'
+import { Form, Formik, useFormik } from 'formik'
+import * as Yup from 'yup'
+import { Divider, Label, Modal } from 'semantic-ui-react'
+import { useParams } from 'react-router-dom'
+import ExperienceService from '../services/experienceService'
+import ResumeSubmitPopup from './ResumeSubmitPopup'
+import { Editor } from '@tinymce/tinymce-react'
+import { useRef } from 'react'
+import JobTitleService from '../services/jobTitleService'
+import WorkingTypeService from '../services/workingTypeService'
 
-let jobTitleService = new JobTitleService();
-const experienceService = new ExperienceService();
-let workingTypeService = new WorkingTypeService();
+let jobTitleService = new JobTitleService()
+const experienceService = new ExperienceService()
+let workingTypeService = new WorkingTypeService()
 
 export default function NewExperiencePopup({
   open,
   setOpen,
   showPopupCallback,
 }) {
-  const { resumeId } = useParams();
-  const [modalOpen, setModalOpen] = useState(false);
-  const [showPopup, setShowPopup] = useState(false);
-  const [jobTitles, setJobTitles] = useState([]);
-  const [workingTypes, setWorkingTypes] = useState([]);
-  const [message, setMessage] = useState("");
-  const [success, setSuccess] = useState(false);
-  const [content, setContent] = useState("");
-  const editorRef = useRef(null);
+  const { resumeId } = useParams()
+  const [modalOpen, setModalOpen] = useState(false)
+  const [showPopup, setShowPopup] = useState(false)
+  const [jobTitles, setJobTitles] = useState([])
+  const [workingTypes, setWorkingTypes] = useState([])
+  const [message, setMessage] = useState('')
+  const [success, setSuccess] = useState(false)
+  const [content, setContent] = useState('')
+  const editorRef = useRef(null)
 
   const log = () => {
     if (editorRef.current) {
-      console.log(editorRef.current.getContent());
+      console.log(editorRef.current.getContent())
     }
-  };
-
-  const handleEditorChange = (content, editor) => {
-    setContent(content);
-  };
+  }
 
   useEffect(() => {
-    setModalOpen(open);
+    setModalOpen(open)
     jobTitleService
       .getJobTitles()
-      .then((result) => setJobTitles(result.data.data));
+      .then((result) => setJobTitles(result.data.data))
     workingTypeService
       .getWorkingTypes()
-      .then((result) => setWorkingTypes(result.data.data));
-  }, [open]);
+      .then((result) => setWorkingTypes(result.data.data))
+  }, [open])
 
   const handleModal = (value) => {
     if (!value) {
-      setMessage("");
+      setMessage('')
+      formik.resetForm()
     }
-    setModalOpen(value);
-    setOpen(value);
-    formik.setFieldValue("companyName", "");
-    formik.setFieldValue("companySector", "");
-    formik.setFieldValue("cityName", "");
-    formik.setFieldValue("jobDescription", "");
-    formik.setFieldValue("experienceStart", "");
-    formik.setFieldValue("experienceEnd", "");
-    formik.setFieldValue("workingType", "");
-    formik.setFieldValue("jobTitle", "");
-  };
+    setModalOpen(value)
+    setOpen(value)
+    formik.setFieldValue('companyName', '')
+    formik.setFieldValue('companySector', '')
+    formik.setFieldValue('cityName', '')
+    formik.setFieldValue('jobDescription', '')
+    formik.setFieldValue('experienceStart', '')
+    formik.setFieldValue('experienceEnd', '')
+    formik.setFieldValue('workingType', '')
+    formik.setFieldValue('jobTitle', '')
+  }
 
   const handleChange = (fieldName, value) => {
-    formik.setFieldValue(fieldName, value);
-  };
+    formik.setFieldValue(fieldName, value)
+  }
 
   const initialValues = {
     resume: { resumeId: resumeId },
-    companyName: "",
-    companySector: "",
-    cityName: "",
-    jobDescription: "",
-    experienceStart: "",
-    experienceEnd: "",
-    workingType: "",
-    jobTitle: "",
-  };
+    companyName: '',
+    companySector: '',
+    cityName: '',
+    jobDescription: '',
+    experienceStart: '',
+    experienceEnd: '',
+    workingType: '',
+    jobTitle: '',
+  }
 
   const validationSchema = Yup.object({
     companyName: Yup.string()
-      .max(50, "Over 50 Characters")
-      .min(3, "Less than 3 Characters")
-      .required("Required Field"),
-    companySector: Yup.string().required("Required Field"),
-    cityName: Yup.string().required("Required Field"),
+      .max(50, 'Over 50 Characters')
+      .min(3, 'Less than 3 Characters')
+      .required('Required Field'),
+    companySector: Yup.string().required('Required Field'),
+    cityName: Yup.string().required('Required Field'),
     jobDescription: Yup.string()
-      .max(20000, "Over 20000 Characters")
-      .min(3, "Less than 3 Characters")
-      .required("Required Field"),
-    experienceStart: Yup.date().required("Required Field"),
-    experienceEnd: Yup.date().required("Required Field"),
-    workingType: Yup.object().required("Required Field"),
-    jobTitle: Yup.object().required("Required Field"),
-  });
+      .max(20000, 'Over 20000 Characters')
+      .min(3, 'Less than 3 Characters')
+      .required('Required Field'),
+    experienceStart: Yup.date().required('Required Field'),
+    experienceEnd: Yup.date().required('Required Field'),
+    workingType: Yup.object().required('Required Field'),
+    jobTitle: Yup.object().required('Required Field'),
+  })
 
   const onSubmit = async (values, { resetForm }) => {
-    setMessage("");
-    setSuccess(false);
+    setMessage('')
+    setSuccess(false)
 
     experienceService.addExperience(values).then(
       (response) => {
-        setSuccess(response.data.success);
-        setMessage(response.data.message);
-        setShowPopup(true);
+        setSuccess(response.data.success)
+        setMessage(response.data.message)
+        setShowPopup(true)
         setTimeout(() => {
-          showPopupCallback();
-          formik.setFieldValue("workingType", "");
-          formik.setFieldValue("jobTitle", "");
-          resetForm();
-        }, 100);
+          showPopupCallback()
+          formik.setFieldValue('workingType', '')
+          formik.setFieldValue('jobTitle', '')
+          resetForm()
+        }, 100)
       },
       (error) => {
         const resMessage =
@@ -122,23 +119,23 @@ export default function NewExperiencePopup({
             error.response.data &&
             error.response.data.message) ||
           error.message ||
-          error.toString();
+          error.toString()
 
-        setMessage(resMessage);
-        setSuccess(false);
-      }
-    );
-  };
+        setMessage(resMessage)
+        setSuccess(false)
+      },
+    )
+  }
 
   const handleDismissPopup = () => {
-    setShowPopup(false);
-  };
+    setShowPopup(false)
+  }
 
   const formik = useFormik({
     initialValues: initialValues,
     validationSchema: validationSchema,
     onSubmit: onSubmit,
-  });
+  })
 
   return (
     <Modal
@@ -149,12 +146,12 @@ export default function NewExperiencePopup({
       className="ui modal"
     >
       <div className="header">
-        <div className="flex">
+        <div className="flex justify-between">
           <div> Experience</div>
-          <div className="ml-[902px] hover:cursor-pointer hover:text-red-500">
+          <div className="hover:cursor-pointer hover:text-red-500">
             <i
               onClick={() => {
-                handleModal(false);
+                handleModal(false)
               }}
               className="close icon"
             />
@@ -172,7 +169,10 @@ export default function NewExperiencePopup({
                     className="font-poppins font-medium text-md text-gray-800"
                     htmlFor="companyName"
                   >
-                    <span>Company Name</span>
+                    <span>
+                      Company Name&nbsp;
+                      <span className="text-red-500 select-none">*</span>
+                    </span>
                   </label>
 
                   <input
@@ -181,7 +181,7 @@ export default function NewExperiencePopup({
                     className="w-[432px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shafow-sm"
                     placeholder="Enter company name"
                     onChange={(event) =>
-                      handleChange("companyName", event.target.value)
+                      handleChange('companyName', event.target.value)
                     }
                     value={formik.values.companyName}
                   />
@@ -206,15 +206,18 @@ export default function NewExperiencePopup({
                     className="font-poppins font-medium text-md text-gray-800"
                     htmlFor="jobTitle"
                   >
-                    <span>Job Title</span>
+                    <span>
+                      Job Title&nbsp;
+                      <span className="text-red-500 select-none">*</span>
+                    </span>
                   </label>
 
                   <select
                     name="jobTitle"
                     onChange={(event) =>
-                      handleChange("jobTitle.titleId", event.target.value)
+                      handleChange('jobTitle.titleId', event.target.value)
                     }
-                    value={formik.values.jobTitle?.titleId || ""}
+                    value={formik.values.jobTitle?.titleId || ''}
                     className="w-[432px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shadow-sm"
                   >
                     <option value="">Select a job title...</option>
@@ -246,7 +249,10 @@ export default function NewExperiencePopup({
                       className="font-poppins font-medium text-md text-gray-800"
                       htmlFor="experienceStart"
                     >
-                      <span>Starting Date</span>
+                      <span>
+                        Starting Date&nbsp;
+                        <span className="text-red-500 select-none">*</span>
+                      </span>
                     </label>
 
                     <input
@@ -254,7 +260,7 @@ export default function NewExperiencePopup({
                       type="date"
                       className="w-[212px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shafow-sm"
                       onChange={(event) =>
-                        handleChange("experienceStart", event.target.value)
+                        handleChange('experienceStart', event.target.value)
                       }
                       value={formik.values.experienceStart}
                     />
@@ -280,7 +286,10 @@ export default function NewExperiencePopup({
                       className="font-poppins font-medium text-md text-gray-800"
                       htmlFor="experienceEnd"
                     >
-                      <span>Ending Date</span>
+                      <span>
+                        Ending Date&nbsp;
+                        <span className="text-red-500 select-none">*</span>
+                      </span>
                     </label>
 
                     <input
@@ -288,7 +297,7 @@ export default function NewExperiencePopup({
                       type="date"
                       className="w-[212px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shafow-sm"
                       onChange={(event) =>
-                        handleChange("experienceEnd", event.target.value)
+                        handleChange('experienceEnd', event.target.value)
                       }
                       value={formik.values.experienceEnd}
                     />
@@ -315,7 +324,10 @@ export default function NewExperiencePopup({
                     className="font-poppins font-medium text-md text-gray-800"
                     htmlFor="companySector"
                   >
-                    <span>Company Sector</span>
+                    <span>
+                      Company Sector&nbsp;
+                      <span className="text-red-500 select-none">*</span>
+                    </span>
                   </label>
 
                   <input
@@ -324,7 +336,7 @@ export default function NewExperiencePopup({
                     className="w-[432px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shafow-sm"
                     placeholder="Enter company sector"
                     onChange={(event) =>
-                      handleChange("companySector", event.target.value)
+                      handleChange('companySector', event.target.value)
                     }
                     value={formik.values.companySector}
                   />
@@ -351,7 +363,10 @@ export default function NewExperiencePopup({
                       className="font-poppins font-medium text-md text-gray-800"
                       htmlFor="cityName"
                     >
-                      <span>City</span>
+                      <span>
+                        City&nbsp;
+                        <span className="text-red-500 select-none">*</span>
+                      </span>
                     </label>
 
                     <input
@@ -360,7 +375,7 @@ export default function NewExperiencePopup({
                       className="w-[212px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shafow-sm"
                       placeholder="Enter city"
                       onChange={(event) =>
-                        handleChange("cityName", event.target.value)
+                        handleChange('cityName', event.target.value)
                       }
                       value={formik.values.cityName}
                     />
@@ -385,18 +400,21 @@ export default function NewExperiencePopup({
                       className="font-poppins font-medium text-md text-gray-800"
                       htmlFor="jobTitle"
                     >
-                      <span>Working Type</span>
+                      <span>
+                        Working Type&nbsp;
+                        <span className="text-red-500 select-none">*</span>
+                      </span>
                     </label>
 
                     <select
                       name="workingType"
                       onChange={(event) =>
                         handleChange(
-                          "workingType.workingTypeId",
-                          event.target.value
+                          'workingType.workingTypeId',
+                          event.target.value,
                         )
                       }
-                      value={formik.values.workingType?.workingTypeId || ""}
+                      value={formik.values.workingType?.workingTypeId || ''}
                       className="w-[212px] mt-1 rounded-md border border-gray-500 focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shadow-sm"
                     >
                       <option value="">Select a job title</option>
@@ -433,7 +451,8 @@ export default function NewExperiencePopup({
                   className="font-poppins font-medium text-md text-gray-800 ml-0.5 mb-1"
                   htmlFor="companyName"
                 >
-                  Job Description:
+                  Job Description&nbsp;
+                  <span className="text-red-500 select-none">*</span>
                 </div>
                 <Editor
                   apiKey="d00hn5i11zkj8gtivr0erf33k621kt5x120e7qnsz2eo7g94"
@@ -444,17 +463,17 @@ export default function NewExperiencePopup({
                     height: 300,
                     menubar: true,
                     plugins: [
-                      "advlist autolink lists link image charmap print preview anchor",
-                      "searchreplace visualblocks code fullscreen",
-                      "insertdatetime media table paste code help wordcount",
+                      'advlist autolink lists link image charmap print preview anchor',
+                      'searchreplace visualblocks code fullscreen',
+                      'insertdatetime media table paste code help wordcount',
                     ],
                     toolbar:
-                      "undo redo | formatselect | bold italic backcolor | \
+                      'undo redo | formatselect | bold italic backcolor | \
                       aligncenter alignright alignjustify | \
-                      bullist numlist outdent indent | removeformat | help",
+                      bullist numlist outdent indent | removeformat | help',
                   }}
                   onEditorChange={(content) =>
-                    formik.setFieldValue("jobDescription", content)
+                    formik.setFieldValue('jobDescription', content)
                   }
                   value={formik.values.jobDescription}
                 />
@@ -479,12 +498,12 @@ export default function NewExperiencePopup({
           </div>
           <Divider />
 
-          <div className="flex justify-end mt-2 mb-2 mr-5">
+          <div className="flex justify-end p-2">
             <button
               type="cancel"
               className="inline-block rounded mr-2 px-3 py-2 text-medium font-medium text-white hover:bg-shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-400 bg-red-600 hover:bg-red-800"
               onClick={() => {
-                handleModal(false);
+                handleModal(false)
               }}
             >
               Cancel
@@ -496,18 +515,18 @@ export default function NewExperiencePopup({
               Save
             </button>
           </div>
-
           {showPopup && (
             <ResumeSubmitPopup
               message={{
-                title: "Changes saved",
+                title: success ? 'Saved' : 'Failed',
                 content: message,
               }}
+              success={success}
               handleDismissPopup={handleDismissPopup}
             />
           )}
         </Form>
       </Formik>
     </Modal>
-  );
+  )
 }

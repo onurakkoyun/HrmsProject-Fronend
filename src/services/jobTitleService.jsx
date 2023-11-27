@@ -1,9 +1,9 @@
-import axios from "axios";
-import authHeader from "./auth-header";
+import axios from 'axios'
+import authHeader from './auth-header'
 
-const API_URL = "http://localhost:8080/api/jobTitles/";
+const API_URL = 'http://localhost:8080/api/jobTitles/'
 export default class JobTitleService {
   getJobTitles = () => {
-    return axios.get(API_URL + "getalljobtitles", { headers: authHeader() });
-  };
+    return axios.get(API_URL + 'getalljobtitles', { headers: authHeader() })
+  }
 }

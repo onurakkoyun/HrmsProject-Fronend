@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useState } from "react";
 import ExperienceService from "../services/experienceService";
 import NewExperiencePopup from "../components/NewExperiencePopup";
+import EditExperiencePopup from "../components/EditExperiencePopup";
 
 function calculateExperienceDuration(startDate, endDate) {
   const start = new Date(startDate);
@@ -27,9 +28,13 @@ const experienceService = new ExperienceService();
 
 export default function ExperiencesList({ resumeId }) {
   const [experiences, setExperiences] = useState([]);
+  const [experienceId, setExperienceId] = useState("");
   const [isNewExperienceModalOpen, setIsNewExperienceModalOpen] =
     useState(false);
+  const [isEditExperienceModalOpen, setIsEditExperienceModalOpen] =
+    useState(false);
   const [newExperienceAdded, setNewExperienceAdded] = useState(false);
+  const [experienceUpdated, setExperienceUpdated] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
@@ -39,16 +44,23 @@ export default function ExperiencesList({ resumeId }) {
     if (newExperienceAdded) {
       setNewExperienceAdded(false);
     }
-  }, [resumeId, newExperienceAdded]);
+    if (experienceUpdated) {
+      setExperienceUpdated(false);
+    }
+  }, [resumeId, newExperienceAdded, experienceUpdated]);
 
   const handleCreateNewExperienceClick = () => {
     setIsNewExperienceModalOpen(true);
   };
 
+  const handleUpdateExperienceClick = (id) => {
+    setExperienceId(id);
+    setIsEditExperienceModalOpen(true);
+  };
+
   const deleteExperience = async (experienceId) => {
     try {
       await experienceService.deleteExperience(experienceId);
-      // Resume başarıyla silindiğinde, silinen resume'yi frontend listesinden kaldırın
       setExperiences((prevExperiences) =>
         prevExperiences.filter(
           (experience) => experience.experienceId !== experienceId
@@ -58,17 +70,20 @@ export default function ExperiencesList({ resumeId }) {
       console.error("An error occurred while deleting the experience.", error);
     }
   };
+
   return (
     <div>
       <div className="mt-3 mx-auto md:mx-auto lg:px-[256px]">
-        <section className="rounded-lg bg-white sm:p-2 md:p-4 lg:p-8 shadow-xl hover:border-dashed border-2 hover:border-gray-500 justify-items-center mt-3 max-w-screen-full mx-auto px-4 md:px-8 sm:px-4">
+        <section className="rounded-lg tracking-wide bg-white sm:p-2 md:p-4 lg:p-8 shadow-xl hover:border-dashed border-2 hover:border-gray-500 justify-items-center mt-3 max-w-screen-full mx-auto px-4 md:px-8 sm:px-4">
           <div>
-            <h3 className="text-left font-semibold">Job Experiences</h3>
+            <h3 className="text-left font-mulish font-semibold">
+              Job Experiences
+            </h3>
           </div>
           <div className="mt-5">
             {experiences.length === 0 ? (
               <div>
-                <p className="inline-flex items-center rounded-full bg-yellow-50 px-9 py-2 text-md font-medium text-yellow-800 ring-1 ring-inset ring-yellow-600/20">
+                <p className="inline-flex font-mulish font-medium items-center rounded-full bg-yellow-50 px-8.5 py-2 text-md text-yellow-800 ring-1 ring-inset ring-yellow-600/20">
                   No any experience added yet
                 </p>
               </div>
@@ -77,7 +92,7 @@ export default function ExperiencesList({ resumeId }) {
                 {experiences.map((experience) => (
                   <div
                     key={experience.experienceId}
-                    className="relative flex flex-col md:flex-row gap-5 rounded-xl p-3 border group mb-3 hover:border-green-400"
+                    className="relative font-mulish font-medium flex flex-col md:flex-row gap-5 rounded-xl p-3 border group mb-3 hover:border-green-400"
                   >
                     <button
                       type="button"
@@ -90,7 +105,7 @@ export default function ExperiencesList({ resumeId }) {
                         viewBox="0 0 24 24"
                         strokeWidth={1.5}
                         stroke="currentColor"
-                        className="w-4 h-4"
+                        className="w-3 h-3"
                       >
                         <path
                           strokeLinecap="round"
@@ -102,6 +117,9 @@ export default function ExperiencesList({ resumeId }) {
                     <button
                       type="button"
                       className="absolute bottom-1 right-1 group-hover:opacity-100 opacity-0 hover:cursor-pointer hover:text-green-500"
+                      onClick={() =>
+                        handleUpdateExperienceClick(experience.experienceId)
+                      }
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -109,7 +127,7 @@ export default function ExperiencesList({ resumeId }) {
                         viewBox="0 0 24 24"
                         strokeWidth={1.5}
                         stroke="currentColor"
-                        className="w-4 h-4"
+                        className="w-3 h-3"
                       >
                         <path
                           strokeLinecap="round"
@@ -118,6 +136,15 @@ export default function ExperiencesList({ resumeId }) {
                         />
                       </svg>
                     </button>
+                    <EditExperiencePopup
+                      experienceId={experienceId}
+                      open={isEditExperienceModalOpen}
+                      setOpen={setIsEditExperienceModalOpen}
+                      showPopupCallback={() => {
+                        setShowPopup(true);
+                        setExperienceUpdated(true);
+                      }}
+                    />
 
                     <div className="flex flex-col">
                       <div className="mb-1">
@@ -136,7 +163,7 @@ export default function ExperiencesList({ resumeId }) {
                           />
                         </svg>
                       </div>
-                      <div className="w-[64px] text-left">
+                      <div className="w-[72px] text-left">
                         <div className="text-sm text-gray-500">Duration</div>
                         {calculateExperienceDuration(
                           experience.experienceStart,
@@ -227,9 +254,9 @@ export default function ExperiencesList({ resumeId }) {
               <button
                 type="button"
                 onClick={handleCreateNewExperienceClick}
-                className="grid justify-items-center mt-2 mb-2 rounded-lg border border-dashed border-gray-900/25 active:border-[#69d11c] px-[86px] py-[8px] sm:px-[136px] sm:py-[16px] hover:underline"
+                className="grid tracking-wide justify-items-center mt-2 mb-2 rounded-lg border border-dashed border-gray-900/25 active:border-[#69d11c] px-[86px] py-[8px] sm:px-[136px] sm:py-[16px] hover:underline"
               >
-                <span className="font-lato font-semibold flex text-center text-md font-bold leading-6 text-[#69d11c]">
+                <span className="font-mulish font-bold flex text-center text-md leading-6 text-[#69d11c]">
                   + &nbsp;&nbsp;Add Experience
                 </span>
               </button>

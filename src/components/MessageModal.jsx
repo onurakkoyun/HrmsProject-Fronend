@@ -1,5 +1,5 @@
-import React from "react";
-import { Modal, Header, Icon } from "semantic-ui-react";
+import React from 'react'
+import { Modal, Header, Icon } from 'semantic-ui-react'
 
 export default function MessageModal({
   onClose,
@@ -26,5 +26,5 @@ export default function MessageModal({
         {content}
       </Header>
     </Modal>
-  );
+  )
 }

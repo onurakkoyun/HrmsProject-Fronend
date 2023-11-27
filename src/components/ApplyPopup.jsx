@@ -1,5 +1,5 @@
-import React from "react";
-import { Modal, Button, Icon } from "semantic-ui-react";
+import React from 'react'
+import { Modal, Button, Icon } from 'semantic-ui-react'
 
 export default function ApplyPopup({ onClose }) {
   return (
@@ -16,5 +16,5 @@ export default function ApplyPopup({ onClose }) {
         </Button>
       </Modal.Actions>
     </Modal>
-  );
+  )
 }

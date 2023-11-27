@@ -1,91 +1,158 @@
-import React, { useEffect } from "react";
-import { Formik, Form, useFormik } from "formik";
-import * as Yup from "yup";
-import { useState } from "react";
-import { useParams } from "react-router-dom";
-import { Divider, Label, Modal } from "semantic-ui-react";
-import EducationService from "../services/educationService";
-import ResumeSubmitPopup from "./ResumeSubmitPopup";
-import { Editor } from "@tinymce/tinymce-react";
-import { useRef } from "react";
-import axios from "axios";
+import React, { useEffect } from 'react'
+import { Formik, Form, useFormik } from 'formik'
+import * as Yup from 'yup'
+import { useState } from 'react'
+import { useParams } from 'react-router-dom'
+import { Divider, Label, Modal } from 'semantic-ui-react'
+import EducationService from '../services/educationService'
+import ResumeSubmitPopup from './ResumeSubmitPopup'
+import { Editor } from '@tinymce/tinymce-react'
+import { useRef } from 'react'
+import axios from 'axios'
+import authHeader from '../services/auth-header'
 
-const educationService = new EducationService();
+const educationService = new EducationService()
 
 export default function NewEducationPopup({
   open,
   setOpen,
   showPopupCallback,
 }) {
-  const { resumeId } = useParams();
-  const [languages, setLanguages] = useState([]);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [showPopup, setShowPopup] = useState(false);
-  const [showEndingDate, setShowEndingDate] = useState(true);
-  const [message, setMessage] = useState("");
-  const [success, setSuccess] = useState(false);
-  const [content, setContent] = useState("");
-  const editorRef = useRef(null);
+  const { resumeId } = useParams()
+  const [languages, setLanguages] = useState([])
+  const [modalOpen, setModalOpen] = useState(false)
+  const [showPopup, setShowPopup] = useState(false)
+  const [showEndingDate, setShowEndingDate] = useState(true)
+  const [message, setMessage] = useState('')
+  const [success, setSuccess] = useState(false)
+  const [content, setContent] = useState('')
+  const editorRef = useRef(null)
 
   const log = () => {
     if (editorRef.current) {
-      console.log(editorRef.current.getContent());
+      console.log(editorRef.current.getContent())
     }
-  };
+  }
 
   const initialValues = {
     resume: { resumeId: resumeId },
-    educationLevel: "",
-    universityName: "",
-    faculty: "",
-    department: "",
-    cityName: "",
-    description: "",
-    degreeType: "",
-    graduationDegree: "",
-    educationType: "",
-    educationLanguage: "",
-    startingDate: "",
-    endingDate: "",
-    isContinue: false,
-  };
+    educationLevel: '',
+    universityName: '',
+    faculty: '',
+    department: '',
+    cityName: '',
+    description: '',
+    degreeType: '',
+    graduationDegree: '',
+    educationType: '',
+    educationLanguage: '',
+    startingDate: '',
+    endingDate: '',
+    continue: false,
+  }
 
   const validationSchema = Yup.object({
-    educationLevel: Yup.string().required("Required Field"),
-    universityName: Yup.string().required("Required Field"),
-    faculty: Yup.string().required("Required Field"),
-    department: Yup.string().required("Required Field"),
-    cityName: Yup.string().required("Required Field"),
-    description: Yup.string().required("Required Field"),
-    degreeType: Yup.number()
-      .required("Required Field")
-      .oneOf([4, 5, 10, 100], "Invalid Degree Type"),
+    educationLevel: Yup.string().required('Required Field'),
+    universityName: Yup.string().required('Required Field'),
+    faculty: Yup.string().required('Required Field'),
+    department: Yup.string().required('Required Field'),
+    cityName: Yup.string().required('Required Field'),
+    description: Yup.string().required('Required Field'),
+    degreeType: Yup.string().when('continue', {
+      is: false,
+      then: () =>
+        Yup.number()
+          .required('Required Field')
+          .oneOf([4, 5, 10, 100], 'Invalid Degree Type'),
+    }),
     graduationDegree: Yup.number()
-      .positive("Must be a positive number")
-      .required("Required Field"),
-    educationType: Yup.string().required("Required Field"),
-    educationLanguage: Yup.string().required("Required Field"),
-    isContinue: Yup.boolean(),
-    startingDate: Yup.date().required("Required Field"),
-  });
+      .when('continue', {
+        is: false,
+        then: () =>
+          Yup.number()
+            .positive('Must be a positive number')
+            .required('Required Field'),
+      })
+      .when('degreeType', {
+        is: 4,
+        then: () =>
+          Yup.number()
+            .max(4, 'Maximum graduation degree is 4')
+            .positive('Must be a positive number')
+            .required('Required Field'),
+      })
+      .when('degreeType', {
+        is: 5,
+        then: () =>
+          Yup.number()
+            .max(5, 'Maximum graduation degree is 5')
+            .positive('Must be a positive number')
+            .required('Required Field'),
+      })
+      .when('degreeType', {
+        is: 10,
+        then: () =>
+          Yup.number()
+            .max(10, 'Maximum graduation degree is 10')
+            .positive('Must be a positive number')
+            .required('Required Field'),
+      })
+      .when('degreeType', {
+        is: 100,
+        then: () =>
+          Yup.number()
+            .max(100, 'Maximum graduation degree is 100')
+            .positive('Must be a positive number')
+            .required('Required Field'),
+      }),
+    educationType: Yup.string().required('Required Field'),
+    educationLanguage: Yup.string().required('Required Field'),
+    continue: Yup.boolean(),
+    startingDate: Yup.date()
+      .max(new Date(), 'Starting date must be in the past')
+      .required('Required Field'),
+    endingDate: Yup.date()
+      .min(Yup.ref('startingDate'), 'Ending date must be after starting date')
+      .when('continue', {
+        is: false,
+        then: () =>
+          Yup.date()
+            .required('Required Field')
+            .min(
+              Yup.ref('startingDate'),
+              'Ending date must be after starting date',
+            ),
+      }),
+  })
 
   useEffect(() => {
-    setModalOpen(open);
-  }, [open]);
+    setModalOpen(open)
+    axios
+      .get('http://localhost:8080/api/language-list/getAllLanguageList', {
+        headers: authHeader(),
+      })
+      .then((response) => {
+        setLanguages(response.data.data)
+      })
+      .catch((error) => {
+        console.error('Error fetching language options: ', error)
+      })
+  }, [open])
 
   const onSubmit = async (values, { resetForm }) => {
-    setMessage("");
-    setSuccess(false);
+    setMessage('')
+    setSuccess(false)
 
     educationService.addEducation(values).then(
       (response) => {
-        setSuccess(response.data.success);
-        setMessage(response.data.message);
-        setShowPopup(true);
+        setSuccess(response.data.success)
+        setMessage(response.data.message)
+        setShowPopup(true)
+        setShowEndingDate(true)
         setTimeout(() => {
-          showPopupCallback();
-          resetForm();
-        }, 100);
+          showPopupCallback()
+          resetForm()
+        }, 100)
       },
       (error) => {
         const resMessage =
@@ -93,53 +160,69 @@ export default function NewEducationPopup({
             error.response.data &&
             error.response.data.message) ||
           error.message ||
-          error.toString();
+          error.toString()
 
-        setMessage(resMessage);
-        setSuccess(false);
-      }
-    );
-  };
+        setMessage(resMessage)
+        setSuccess(false)
+      },
+    )
+  }
 
   const formik = useFormik({
     initialValues: initialValues,
     validationSchema: validationSchema,
     onSubmit: onSubmit,
-  });
+  })
 
   const handleModal = (value) => {
     if (!value) {
-      setMessage("");
+      setMessage('')
+      formik.resetForm()
     }
-    setModalOpen(value);
-    setOpen(value);
-    formik.setFieldValue("educationLevel", "");
-    formik.setFieldValue("universityName", "");
-    formik.setFieldValue("faculty", "");
-    formik.setFieldValue("department", "");
-    formik.setFieldValue("cityName", "");
-    formik.setFieldValue("description", "");
-    formik.setFieldValue("degreeType", "");
-    formik.setFieldValue("graduationDegree", "");
-    formik.setFieldValue("educationType", "");
-    formik.setFieldValue("educationLanguage", "");
-    formik.setFieldValue("startingDate", "");
-    formik.setFieldValue("endingDate", "");
-    formik.setFieldValue("isContinue", "");
-  };
+    setModalOpen(value)
+    setOpen(value)
+    formik.setFieldValue('educationLevel', '')
+
+    formik.setFieldValue('universityName', '')
+
+    formik.setFieldValue('faculty', '')
+
+    formik.setFieldValue('department', '')
+
+    formik.setFieldValue('cityName', '')
+
+    formik.setFieldValue('description', '')
+
+    formik.setFieldValue('degreeType', '')
+
+    formik.setFieldValue('graduationDegree', '')
+
+    formik.setFieldValue('educationType', '')
+
+    formik.setFieldValue('educationLanguage', '')
+
+    formik.setFieldValue('startingDate', '')
+
+    formik.setFieldValue('endingDate', '')
+
+    formik.setFieldValue('continue', false)
+    setShowEndingDate(true)
+  }
 
   const handleChange = (fieldName, value) => {
-    formik.setFieldValue(fieldName, value);
-    if (fieldName === "isContinue") {
-      setShowEndingDate(!value); // Checkbox işaretlenirse, endingDate bileşenini gizle.
-      // isContinue değeri değiştiğinde formu yeniden doğrula
-      formik.validateForm();
+    formik.setFieldValue(fieldName, value)
+    if (fieldName === 'continue') {
+      if (value === true) {
+        formik.setFieldValue('endingDate', '')
+      }
+      setShowEndingDate(!value)
+      formik.validateForm()
     }
-  };
+  }
 
   const handleDismissPopup = () => {
-    setShowPopup(false);
-  };
+    setShowPopup(false)
+  }
 
   return (
     <div>
@@ -151,12 +234,12 @@ export default function NewEducationPopup({
         className="ui modal"
       >
         <div className="header">
-          <div className="flex">
+          <div className="flex justify-between">
             <div>Education</div>
-            <div className="ml-[902px] hover:cursor-pointer hover:text-red-500">
+            <div className="hover:cursor-pointer hover:text-red-500">
               <i
                 onClick={() => {
-                  handleModal(false);
+                  handleModal(false)
                 }}
                 className="close icon"
               />
@@ -174,19 +257,20 @@ export default function NewEducationPopup({
                       className="font-poppins font-medium text-md text-gray-800"
                       htmlFor="educationLevel"
                     >
-                      <span>Education Level</span>
+                      <span>
+                        Education Level&nbsp;
+                        <span className="text-red-500 select-none">*</span>
+                      </span>
                     </label>
                     <select
                       name="educationLevel"
                       onChange={(event) =>
-                        handleChange("educationLevel", event.target.value)
+                        handleChange('educationLevel', event.target.value)
                       }
-                      value={formik.values.educationLevel || ""}
+                      value={formik.values.educationLevel || ''}
                       className="w-[432px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shadow-sm"
                     >
-                      <option value="" hidden>
-                        Education level
-                      </option>
+                      <option value="">Education level</option>
                       <option value="Bachelor">Bachelor</option>
                       <option value="Associate Degree">Associate Degree</option>
                       <option value="Master">Master</option>
@@ -215,23 +299,26 @@ export default function NewEducationPopup({
                         className="font-poppins font-medium text-md text-gray-800"
                         htmlFor="educationType"
                       >
-                        <span>Education Type</span>
+                        <span>
+                          Education Type&nbsp;
+                          <span className="text-red-500 select-none">*</span>
+                        </span>
                       </label>
 
                       <select
                         name="educationType"
                         onChange={(event) =>
-                          handleChange("educationType", event.target.value)
+                          handleChange('educationType', event.target.value)
                         }
-                        value={formik.values.educationType || ""}
+                        value={formik.values.educationType || ''}
                         className="w-[212px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shadow-sm"
                       >
                         <option value="">Education Type</option>
-                        <option value="Distance Education">
-                          Distance Education
-                        </option>
                         <option value="Evening Education">
                           Evening Education
+                        </option>
+                        <option value="Distance Education">
+                          Distance Education
                         </option>
                         <option value="Formal Education">
                           Formal Education
@@ -260,20 +347,26 @@ export default function NewEducationPopup({
                         className="font-poppins font-medium text-md text-gray-800"
                         htmlFor="educationLanguage"
                       >
-                        <span>Education Language</span>
+                        <span>
+                          Education Language&nbsp;
+                          <span className="text-red-500 select-none">*</span>
+                        </span>
                       </label>
                       <select
                         name="educationLanguage"
                         onChange={(event) =>
-                          handleChange("educationLanguage", event.target.value)
+                          handleChange('educationLanguage', event.target.value)
                         }
-                        value={formik.values.educationType || ""}
+                        value={formik.values.educationLanguage || ''}
                         className="w-[212px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shadow-sm"
                       >
-                        <option value="">Lütfen bir dil seçin</option>
-                        {languages.map((language, index) => (
-                          <option key={index} value={language}>
-                            {language}
+                        <option value="">Select a language...</option>
+                        {languages.map((language) => (
+                          <option
+                            key={language.languageId}
+                            value={language.languageName}
+                          >
+                            {language.languageName}
                           </option>
                         ))}
                       </select>
@@ -301,7 +394,10 @@ export default function NewEducationPopup({
                         className="font-poppins font-medium text-md text-gray-800"
                         htmlFor="startingDate"
                       >
-                        <span>Starting Date</span>
+                        <span>
+                          Starting Date&nbsp;
+                          <span className="text-red-500 select-none">*</span>
+                        </span>
                       </label>
 
                       <input
@@ -309,7 +405,7 @@ export default function NewEducationPopup({
                         type="date"
                         className="w-[212px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shafow-sm"
                         onChange={(event) =>
-                          handleChange("startingDate", event.target.value)
+                          handleChange('startingDate', event.target.value)
                         }
                         value={formik.values.startingDate}
                       />
@@ -330,150 +426,165 @@ export default function NewEducationPopup({
                     </div>
                   </div>
                   {showEndingDate && (
-                    <div className="flex flex-col mr-[32px] ml-[24px]">
-                      <label
-                        className="font-poppins font-medium text-md text-gray-800"
-                        htmlFor="endingDate"
-                      >
-                        <span>Ending Date</span>
-                      </label>
+                    <div>
+                      <div className="flex flex-col mr-[32px] ml-[24px]">
+                        <label
+                          className="font-poppins font-medium text-md text-gray-800"
+                          htmlFor="endingDate"
+                        >
+                          <span>
+                            Ending Date&nbsp;
+                            <span className="text-red-500 select-none">*</span>
+                          </span>
+                        </label>
 
-                      <input
-                        name="endingDate"
-                        type="date"
-                        className="w-[212px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shafow-sm"
-                        onChange={(event) =>
-                          handleChange("endingDate", event.target.value)
-                        }
-                        value={formik.values.endingDate}
-                      />
+                        <input
+                          name="endingDate"
+                          type="date"
+                          className="w-[212px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shafow-sm"
+                          onChange={(event) =>
+                            handleChange('endingDate', event.target.value)
+                          }
+                          value={formik.values.endingDate}
+                        />
+                      </div>
+                      <div className="grid justify-items-center">
+                        {formik.errors.endingDate &&
+                          formik.touched.endingDate && (
+                            <span>
+                              <Label
+                                basic
+                                pointing
+                                color="red"
+                                className="orbitron"
+                                content={formik.errors.endingDate}
+                              />
+                            </span>
+                          )}
+                      </div>
                     </div>
                   )}
 
-                  <div className="grid justify-items-center">
-                    {formik.errors.endingDate && formik.touched.endingDate && (
-                      <span>
-                        <Label
-                          basic
-                          pointing
-                          color="red"
-                          className="orbitron"
-                          content={formik.errors.endingDate}
-                        />
-                      </span>
-                    )}
-                  </div>
                   <div
                     className={`flex flex-col ${
-                      showEndingDate ? "" : "ml-[136px]"
+                      showEndingDate ? '' : 'ml-[136px]'
                     }`}
                   >
                     <label
                       className="mb-3 font-poppins font-medium text-md text-center text-gray-800"
-                      htmlFor="isContinue"
+                      htmlFor="continue"
                     >
                       <span>Still continue</span>
                     </label>
                     <input
-                      name="isContinue"
+                      name="continue"
                       type="checkbox"
-                      className="rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shafow-sm"
+                      className="rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md"
                       onChange={(event) =>
-                        handleChange("isContinue", event.target.checked)
+                        handleChange('continue', event.target.checked)
                       }
-                      checked={formik.values.isContinue}
+                      checked={formik.values.continue}
                     />
                   </div>
                   <div className="grid justify-items-center">
-                    {formik.errors.isContinue && formik.touched.isContinue && (
+                    {formik.errors.continue && formik.touched.continue && (
                       <span>
                         <Label
                           basic
                           pointing
                           color="red"
                           className="orbitron"
-                          content={formik.errors.isContinue}
+                          content={formik.errors.continue}
                         />
                       </span>
                     )}
                   </div>
                 </div>
-                <div className="flex flex-row mb-4">
-                  <div className="w-1/2">
-                    <div className="flex flex-col mr-[10px]">
-                      <label
-                        className="font-poppins font-medium text-md text-gray-800"
-                        htmlFor="degreeType"
-                      >
-                        <span>Degree Type</span>
-                      </label>
 
-                      <select
-                        name="degreeType"
-                        onChange={(event) =>
-                          handleChange("degreeType", event.target.value)
-                        }
-                        value={formik.values.degreeType || ""}
-                        className="w-[212px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shadow-sm"
-                      >
-                        <option value="">Degree Type</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                        <option value="10">10</option>
-                        <option value="100">100</option>
-                      </select>
-                    </div>
-                    <div className="grid justify-items-center">
-                      {formik.errors.degreeType &&
-                        formik.touched.degreeType && (
+                {showEndingDate && (
+                  <div className="flex flex-row mb-4">
+                    <div className="w-1/2">
+                      <div className="flex flex-col mr-[10px]">
+                        <label
+                          className="font-poppins font-medium text-md text-gray-800"
+                          htmlFor="degreeType"
+                        >
                           <span>
-                            <Label
-                              basic
-                              pointing
-                              color="red"
-                              className="orbitron"
-                              content={formik.errors.degreeType}
-                            />
+                            Degree Type&nbsp;
+                            <span className="text-red-500 select-none">*</span>
                           </span>
-                        )}
+                        </label>
+
+                        <select
+                          name="degreeType"
+                          onChange={(event) =>
+                            handleChange('degreeType', event.target.value)
+                          }
+                          value={formik.values.degreeType || ''}
+                          className="w-[212px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shadow-sm"
+                        >
+                          <option value="">Degree Type</option>
+                          <option value="4">4</option>
+                          <option value="5">5</option>
+                          <option value="10">10</option>
+                          <option value="100">100</option>
+                        </select>
+                      </div>
+                      <div className="grid justify-items-center">
+                        {formik.errors.degreeType &&
+                          formik.touched.degreeType && (
+                            <span>
+                              <Label
+                                basic
+                                pointing
+                                color="red"
+                                className="orbitron"
+                                content={formik.errors.degreeType}
+                              />
+                            </span>
+                          )}
+                      </div>
+                    </div>
+                    <div className="w-1/2">
+                      <div className="flex flex-col mr-[8px]">
+                        <label
+                          className="font-poppins font-medium text-md text-gray-800"
+                          htmlFor="graduationDegree"
+                        >
+                          <span>
+                            Graduation Degree&nbsp;
+                            <span className="text-red-500 select-none">*</span>
+                          </span>
+                        </label>
+
+                        <input
+                          name="graduationDegree"
+                          type="number"
+                          className="w-[212px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shafow-sm"
+                          placeholder="Enter graduation degree"
+                          onChange={(event) =>
+                            handleChange('graduationDegree', event.target.value)
+                          }
+                          value={formik.values.graduationDegree}
+                        />
+                      </div>
+                      <div className="grid justify-items-center">
+                        {formik.errors.graduationDegree &&
+                          formik.touched.graduationDegree && (
+                            <span>
+                              <Label
+                                basic
+                                pointing
+                                color="red"
+                                className="orbitron"
+                                content={formik.errors.graduationDegree}
+                              />
+                            </span>
+                          )}
+                      </div>
                     </div>
                   </div>
-                  <div className="w-1/2">
-                    <div className="flex flex-col mr-[8px]">
-                      <label
-                        className="font-poppins font-medium text-md text-gray-800"
-                        htmlFor="graduationDegree"
-                      >
-                        <span>Graduation Degree</span>
-                      </label>
-
-                      <input
-                        name="graduationDegree"
-                        type="number"
-                        className="w-[212px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shafow-sm"
-                        placeholder="Enter graduation degree"
-                        onChange={(event) =>
-                          handleChange("graduationDegree", event.target.value)
-                        }
-                        value={formik.values.graduationDegree}
-                      />
-                    </div>
-                    <div className="grid justify-items-center">
-                      {formik.errors.graduationDegree &&
-                        formik.touched.graduationDegree && (
-                          <span>
-                            <Label
-                              basic
-                              pointing
-                              color="red"
-                              className="orbitron"
-                              content={formik.errors.graduationDegree}
-                            />
-                          </span>
-                        )}
-                    </div>
-                  </div>
-                </div>
+                )}
                 <div className="flex flex-row mb-4">
                   <div className="w-1/2">
                     <div className="flex flex-col mr-[8px]">
@@ -481,7 +592,10 @@ export default function NewEducationPopup({
                         className="font-poppins font-medium text-md text-gray-800"
                         htmlFor="universityName"
                       >
-                        <span>University</span>
+                        <span>
+                          University&nbsp;
+                          <span className="text-red-500 select-none">*</span>
+                        </span>
                       </label>
 
                       <input
@@ -490,7 +604,7 @@ export default function NewEducationPopup({
                         className="w-[212px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shafow-sm"
                         placeholder="Enter a university name"
                         onChange={(event) =>
-                          handleChange("universityName", event.target.value)
+                          handleChange('universityName', event.target.value)
                         }
                         value={formik.values.universityName}
                       />
@@ -516,7 +630,10 @@ export default function NewEducationPopup({
                         className="font-poppins font-medium text-md text-gray-800"
                         htmlFor="faculty"
                       >
-                        <span>Faculty</span>
+                        <span>
+                          Faculty&nbsp;
+                          <span className="text-red-500 select-none">*</span>
+                        </span>
                       </label>
 
                       <input
@@ -525,7 +642,7 @@ export default function NewEducationPopup({
                         className="w-[212px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shafow-sm"
                         placeholder="Enter a faculty"
                         onChange={(event) =>
-                          handleChange("faculty", event.target.value)
+                          handleChange('faculty', event.target.value)
                         }
                         value={formik.values.faculty}
                       />
@@ -550,7 +667,10 @@ export default function NewEducationPopup({
                         className="font-poppins font-medium text-md text-gray-800"
                         htmlFor="department"
                       >
-                        <span>Department</span>
+                        <span>
+                          Department&nbsp;
+                          <span className="text-red-500 select-none">*</span>
+                        </span>
                       </label>
 
                       <input
@@ -559,7 +679,7 @@ export default function NewEducationPopup({
                         className="w-[212px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shafow-sm"
                         placeholder="Enter a department"
                         onChange={(event) =>
-                          handleChange("department", event.target.value)
+                          handleChange('department', event.target.value)
                         }
                         value={formik.values.department}
                       />
@@ -585,7 +705,10 @@ export default function NewEducationPopup({
                         className="font-poppins font-medium text-md text-gray-800"
                         htmlFor="cityName"
                       >
-                        <span>City</span>
+                        <span>
+                          City&nbsp;
+                          <span className="text-red-500 select-none">*</span>
+                        </span>
                       </label>
 
                       <input
@@ -594,7 +717,7 @@ export default function NewEducationPopup({
                         className="w-[212px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shafow-sm"
                         placeholder="Enter a city"
                         onChange={(event) =>
-                          handleChange("cityName", event.target.value)
+                          handleChange('cityName', event.target.value)
                         }
                         value={formik.values.cityName}
                       />
@@ -614,13 +737,14 @@ export default function NewEducationPopup({
                     </div>
                   </div>
                 </div>
-                <div className="w-1/2 grid justify-items-start">
+                <div className="w-1/2 grid">
                   <div>
                     <div
                       className="font-poppins font-medium text-md text-gray-800 ml-0.5 mb-1"
                       htmlFor="description"
                     >
-                      Description:
+                      Description&nbsp;
+                      <span className="text-red-500 select-none">*</span>
                     </div>
                     <div className="w-[872px]">
                       <Editor
@@ -631,17 +755,17 @@ export default function NewEducationPopup({
                         init={{
                           menubar: true,
                           plugins: [
-                            "advlist autolink lists link image charmap print preview anchor",
-                            "searchreplace visualblocks code fullscreen",
-                            "insertdatetime media table paste code help wordcount",
+                            'advlist autolink lists link image charmap print preview anchor',
+                            'searchreplace visualblocks code fullscreen',
+                            'insertdatetime media table paste code help wordcount',
                           ],
                           toolbar:
-                            "undo redo | formatselect | bold italic backcolor | \
+                            'undo redo | formatselect | bold italic backcolor | \
                         aligncenter alignright alignjustify | \
-                        bullist numlist outdent indent | removeformat | help",
+                        bullist numlist outdent indent | removeformat | help',
                         }}
                         onEditorChange={(content) =>
-                          formik.setFieldValue("description", content)
+                          formik.setFieldValue('description', content)
                         }
                         value={formik.values.description}
                       />
@@ -668,12 +792,12 @@ export default function NewEducationPopup({
             </div>
             <Divider />
 
-            <div className="flex justify-end mt-2 mb-2 mr-2">
+            <div className="flex justify-end p-2">
               <button
                 type="cancel"
                 className="inline-block rounded mr-2 px-3 py-2 text-medium font-medium text-white hover:bg-shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-400 bg-red-600 hover:bg-red-800"
                 onClick={() => {
-                  handleModal(false);
+                  handleModal(false)
                 }}
               >
                 Cancel
@@ -685,13 +809,13 @@ export default function NewEducationPopup({
                 Save
               </button>
             </div>
-
             {showPopup && (
               <ResumeSubmitPopup
                 message={{
-                  title: "Changes saved",
+                  title: success ? 'Saved' : 'Failed',
                   content: message,
                 }}
+                success={success}
                 handleDismissPopup={handleDismissPopup}
               />
             )}
@@ -699,5 +823,5 @@ export default function NewEducationPopup({
         </Formik>
       </Modal>
     </div>
-  );
+  )
 }

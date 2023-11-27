@@ -4,6 +4,12 @@ import JobTitleService from "./../services/jobTitleService";
 import CityService from "./../services/cityService";
 import { Form } from "semantic-ui-react";
 import ContentTitle from "../components/ContentTitle";
+import defaultProfilePhoto from "../images/default-profile.svg.png";
+import UserService from "../services/userService";
+
+const userService = new UserService();
+const jobPostingService = new JobPostingService();
+const jobTitleService = new JobTitleService();
 
 export default function JobPostingsList() {
   const [jobPostings, setJobPostings] = useState([]);
@@ -12,7 +18,7 @@ export default function JobPostingsList() {
   const [cities, setCities] = useState([]);
   const [cityId, setCityId] = useState("");
   const [filtered, setFiltered] = useState(false);
-
+  const [favoriteButtonClick, setFavoriteButtonClick] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -20,44 +26,89 @@ export default function JobPostingsList() {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
   useEffect(() => {
-    let jobPostingService = new JobPostingService();
-    jobPostingService
-      .getJobPostingsSortByDate()
-      .then((result) => setJobPostings(result.data.data));
+    const fetchData = async () => {
+      const jobPostingsResult = await jobPostingService.getJobPostings();
+      const jobTitlesResult = await jobTitleService.getJobTitles();
+      const citiesResult = await new CityService().getCities();
 
-    let jobTitleService = new JobTitleService();
-    jobTitleService
-      .getJobTitles()
-      .then((result) => setJobTitles(result.data.data));
+      const sortedJobPostings = jobPostingsResult.data.data.sort((a, b) => {
+        const dateA = new Date(a.publicationDate);
+        const dateB = new Date(b.publicationDate);
+        return dateB - dateA;
+      });
 
-    let cityService = new CityService();
-    cityService.getCities().then((result) => setCities(result.data.data));
+      // Apply filter for expired application deadlines
+      const filteredJobPostings = sortedJobPostings.filter((jobPosting) => {
+        const applicationDeadline = new Date(jobPosting.applicationDeadline);
+        const today = new Date();
+        return applicationDeadline >= today; // Include only job postings with future application deadlines
+      });
+
+      setJobPostings(filteredJobPostings);
+      setJobTitles(jobTitlesResult.data.data);
+      setCities(citiesResult.data.data);
+    };
+
+    fetchData();
   }, []);
 
+  useEffect(() => {
+    const fetchAppliedJobs = async () => {
+      try {
+        const jobsWithPhotos = await Promise.all(
+          jobPostings.map(async (jobPosting) => {
+            const userPhotoResponse = await userService.getUserPhotoById(
+              jobPosting?.employer.id
+            );
+
+            if (userPhotoResponse.status === 200) {
+              const imageBlob = userPhotoResponse.data;
+              const imageUrl = URL.createObjectURL(imageBlob);
+              return {
+                ...jobPosting,
+                profilePhoto: imageUrl,
+              };
+            }
+
+            return jobPosting;
+          })
+        );
+
+        // Yalnızca profil fotoğrafları yüklenmemişse set işlemini gerçekleştir
+        if (jobsWithPhotos.some((job) => job.profilePhoto)) {
+          setJobPostings(jobsWithPhotos);
+        }
+      } catch (error) {
+        console.error("Başvurulan işler alınırken bir hata oluştu", error);
+      }
+    };
+
+    // Yalnızca jobPostings değiştiğinde fetchAppliedJobs'i çağır
+    if (jobPostings.length > 0) {
+      fetchAppliedJobs();
+    }
+  }, [jobPostings]);
+
   const handleFiltered = () => {
-    setFiltered(true); // Set filterClicked to true when the "Filter" button is clicked
+    setFiltered(true);
+  };
+
+  const handleFavoriteButtonClick = () => {
+    setFavoriteButtonClick(!favoriteButtonClick);
   };
 
   const currentJobPostings = jobPostings.filter((jobPosting) => {
-    const applicationDeadline = new Date(jobPosting.applicationDeadline);
-    const today = new Date();
-
     if (!filtered) {
       return true;
     }
 
-    // Filter by application deadline
-    if (applicationDeadline < today) {
-      return false; // Exclude job postings with expired application deadline
-    }
-
     // Filter by selected job title (if a job title is selected)
-    if (titleId && jobPosting.titleId !== titleId) {
+    if (titleId && jobPosting.jobTitle?.titleId !== titleId) {
       return false;
     }
 
     // Filter by selected city (if a city is selected)
-    if (cityId && jobPosting.cityId !== cityId) {
+    if (cityId && jobPosting.city?.cityId !== cityId) {
       return false;
     }
 
@@ -113,10 +164,10 @@ export default function JobPostingsList() {
 
   return (
     <div className="container">
-      <ContentTitle content="Job Postings List" />
+      <ContentTitle content="List of Job Postings" />
       <div className="ml-9.5 text-left">
         <div className="ui breadcrumb">
-          <a className="section" href="/home">
+          <a className="section" href="/">
             Home
           </a>
           <i className="right chevron icon divider"></i>
@@ -170,14 +221,13 @@ export default function JobPostingsList() {
                 Explore The Jobs
               </h1>
             </div>
-
             <ul className="mt-5 divide-y space-y-3">
               {currentJobPostings
                 .slice(indexOfFirstItem, indexOfLastItem)
                 .map((jobPosting) => (
                   <li
                     key={jobPosting.jobPostingId}
-                    className="px-4 py-5 duration-150 hover:border-white hover:rounded-xl hover:bg-gray-50"
+                    className="px-4 py-5 duration-150 border rounded-xl shadow-sm hover:border-white hover:rounded-xl hover:bg-gray-50"
                   >
                     <a
                       href={`/jobPosting/${jobPosting.jobPostingId}`}
@@ -185,19 +235,76 @@ export default function JobPostingsList() {
                     >
                       <div>
                         <div className="justify-between sm:flex">
+                          <div className="bg-white w-6 h-6 mr-2 border rounded-xl flex items-center justify-center">
+                            <div>
+                              {jobPosting.profilePhoto ? (
+                                <img
+                                  className="w-5 h-5 rounded-lg object-cover"
+                                  src={jobPosting.profilePhoto}
+                                  alt="Profile"
+                                />
+                              ) : (
+                                <img
+                                  className="w-5 h-5 rounded-lg object-cover"
+                                  src={defaultProfilePhoto}
+                                  alt="Profile"
+                                />
+                              )}
+                            </div>
+                          </div>
                           <div className="flex-1">
-                            <h3 className="text-left text-xl font-bold text-blue-800">
-                              {jobPosting.jobTitleName}
-                            </h3>
-                            <p className="text-left text-gray-700 mt-2 pr-2">
+                            <div className="font-mulish text-black text-left text-xl font-bold">
+                              {jobPosting.jobTitle?.jobTitleName}
+                            </div>
+                            <span className="block text-left text-sm text-blue-500 font-bold">
+                              {jobPosting.employer?.companyName}
+                            </span>
+                            <p className="font-mulish text-left text-gray-700 mt-2 pr-2">
                               {jobPosting.jobSummary}
                             </p>
                           </div>
-                          <div className="mt-5 space-y-4 text-sm sm:mt-0 sm:space-y-2">
-                            <span className="flex items-center text-gray-500">
+                        </div>
+                        <div className="justify-between space-y-4 text-sm sm:flex sm:space-x-4 sm:space-y-0">
+                          <div className="flex mt-4">
+                            <div className="mr-2 font-mulish flex items-center text-gray-800">
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
-                                className="h-3 w-3 mr-2"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                className="w-3 h-3 mr-1"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M7.5 5.25a3 3 0 013-3h3a3 3 0 013 3v.205c.933.085 1.857.197 2.774.334 1.454.218 2.476 1.483 2.476 2.917v3.033c0 1.211-.734 2.352-1.936 2.752A24.726 24.726 0 0112 15.75c-2.73 0-5.357-.442-7.814-1.259-1.202-.4-1.936-1.541-1.936-2.752V8.706c0-1.434 1.022-2.7 2.476-2.917A48.814 48.814 0 017.5 5.455V5.25zm7.5 0v.09a49.488 49.488 0 00-6 0v-.09a1.5 1.5 0 011.5-1.5h3a1.5 1.5 0 011.5 1.5zm-3 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z"
+                                  clipRule="evenodd"
+                                />
+                                <path d="M3 18.4v-2.796a4.3 4.3 0 00.713.31A26.226 26.226 0 0012 17.25c2.892 0 5.68-.468 8.287-1.335.252-.084.49-.189.713-.311V18.4c0 1.452-1.047 2.728-2.523 2.923-2.12.282-4.282.427-6.477.427a49.19 49.19 0 01-6.477-.427C4.047 21.128 3 19.852 3 18.4z" />
+                              </svg>
+                              &nbsp;
+                              {jobPosting.workingType?.typeName}
+                            </div>
+
+                            <div className="font-mulish flex items-center text-gray-800">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-3 w-3 mr-1"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+                              {jobPosting.city?.cityName}
+                            </div>
+                          </div>
+                          <div className="space-y-4 text-sm sm:mt-0 sm:space-y-2">
+                            <div className="flex items-center font-mulish text-gray-800">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-3 w-3 mr-1"
                                 viewBox="0 0 20 20"
                                 fill="currentColor"
                               >
@@ -210,48 +317,15 @@ export default function JobPostingsList() {
                               {new Date(
                                 jobPosting.applicationDeadline
                               ).toDateString()}
-                            </span>
+                            </div>
                           </div>
-                        </div>
-                        <div className="items-center space-y-4 text-sm sm:flex sm:space-x-4 sm:space-y-0">
-                          <span className="mt-4 flex items-center text-gray-500">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 20 20"
-                              fill="currentColor"
-                              className="w-3 h-3"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M1 2.75A.75.75 0 011.75 2h10.5a.75.75 0 010 1.5H12v13.75a.75.75 0 01-.75.75h-1.5a.75.75 0 01-.75-.75v-2.5a.75.75 0 00-.75-.75h-2.5a.75.75 0 00-.75.75v2.5a.75.75 0 01-.75.75h-2.5a.75.75 0 010-1.5H2v-13h-.25A.75.75 0 011 2.75zM4 5.5a.5.5 0 01.5-.5h1a.5.5 0 01.5.5v1a.5.5 0 01-.5.5h-1a.5.5 0 01-.5-.5v-1zM4.5 9a.5.5 0 00-.5.5v1a.5.5 0 00.5.5h1a.5.5 0 00.5-.5v-1a.5.5 0 00-.5-.5h-1zM8 5.5a.5.5 0 01.5-.5h1a.5.5 0 01.5.5v1a.5.5 0 01-.5.5h-1a.5.5 0 01-.5-.5v-1zM8.5 9a.5.5 0 00-.5.5v1a.5.5 0 00.5.5h1a.5.5 0 00.5-.5v-1a.5.5 0 00-.5-.5h-1zM14.25 6a.75.75 0 00-.75.75V17a1 1 0 001 1h3.75a.75.75 0 000-1.5H18v-9h.25a.75.75 0 000-1.5h-4zm.5 3.5a.5.5 0 01.5-.5h1a.5.5 0 01.5.5v1a.5.5 0 01-.5.5h-1a.5.5 0 01-.5-.5v-1zm.5 3.5a.5.5 0 00-.5.5v1a.5.5 0 00.5.5h1a.5.5 0 00.5-.5v-1a.5.5 0 00-.5-.5h-1z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                            &nbsp;
-                            {jobPosting.companyName}
-                          </span>
-                          <span className="flex items-center text-gray-500">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="h-3 w-3 mr-2"
-                              viewBox="0 0 20 20"
-                              fill="currentColor"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                            {jobPosting.cityName}
-                          </span>
                         </div>
                       </div>
                     </a>
                   </li>
                 ))}
             </ul>
-            <div className="flex mt-2 justify-between items-center">
+            <div className="font-mulish flex mt-2 justify-between items-center">
               <p className="text-sm text-gray-700">
                 Showed{" "}
                 <span className="font-medium">{indexOfFirstItem + 1}</span> to{" "}

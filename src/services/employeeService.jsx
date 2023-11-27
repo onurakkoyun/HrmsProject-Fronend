@@ -11,4 +11,10 @@ export default class EmployeeService {
       }
     );
   };
+
+  updateProfile(values) {
+    return axios.put(API_URL + `edit/${values.id}`, values, {
+      headers: authHeader(),
+    });
+  }
 }

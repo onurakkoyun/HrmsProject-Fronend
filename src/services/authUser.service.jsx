@@ -39,6 +39,16 @@ const registerEmployee = (
   );
 };
 
+const registerEmployee2 = (values) => {
+  return axios.post(
+    API_URL + "signup/employee",
+    {
+      values,
+    },
+    { headers: authHeader() }
+  );
+};
+
 const registerEmployer = (
   username,
   email,
@@ -61,19 +71,15 @@ const registerEmployer = (
   );
 };
 
-const login = (username, password) => {
-  return axios
-    .post(API_URL + "signin", {
-      username,
-      password,
-    })
-    .then((response) => {
-      if (response.data.accessToken) {
-        localStorage.setItem("user", JSON.stringify(response.data));
-      }
-
-      return response.data;
-    });
+const login = async (username, password) => {
+  const response = await axios.post(API_URL + "signin", {
+    username,
+    password,
+  });
+  if (response.data.accessToken) {
+    localStorage.setItem("user", JSON.stringify(response.data));
+  }
+  return response.data;
 };
 
 const logout = () => {
@@ -89,6 +95,7 @@ const AuthService = {
   logout,
   register,
   registerEmployee,
+  registerEmployee2,
   registerEmployer,
   getCurrentUser,
 };

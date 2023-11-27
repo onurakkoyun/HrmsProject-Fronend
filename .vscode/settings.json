@@ -1,0 +1,14 @@
+{
+  "tailwindCSS.includeLanguages": {
+    "javascript": "javascriptreact",
+    "html": "HTML"
+  },
+  "editor.quickSuggestions": {
+    "strings": true
+  },
+  "editor.formatOnSave": true,
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
+}

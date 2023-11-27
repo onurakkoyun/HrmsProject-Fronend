@@ -7,31 +7,59 @@ import ResumeSubmitPopup from "../components/ResumeSubmitPopup";
 import ResumeService from "../services/resumeService";
 import { Form, Formik, useFormik } from "formik";
 import * as Yup from "yup";
-import axios from "axios";
 import { Label } from "semantic-ui-react";
 import ExperiencesList from "./ExperiencesList";
 import EducationsList from "./EducationsList";
+import LanguagesList from "./LanguagesList";
+import SkillsList from "./SkillsList";
 
 const userService = new UserService();
 const resumeService = new ResumeService();
 
-export default function Resumes() {
+export default function EditResume() {
+  const { user: currentUser } = useSelector((state) => state.auth);
   const { resumeId } = useParams();
   let navigate = useNavigate();
-  const { user: currentUser } = useSelector((state) => state.auth);
   const [resume, setResume] = useState({});
-
-  const [countries, setCountries] = useState([]);
   const [showMilitaryStatus, setShowMilitaryStatus] = useState(false);
   const [showPostponedDate, setShowPostponedDate] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState("");
-  const [newProfilePhoto, setNewProfilePhoto] = useState(null);
   const [isUploadSuccess, setIsUploadSuccess] = useState(false);
   const [popupMessage, setPopupMessage] = useState({});
   const [showUploadPopup, setShowUploadPopup] = useState(false);
   const [message, setMessage] = useState("");
   const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    if (
+      !currentUser ||
+      (!currentUser.roles.includes("ROLE_EMPLOYEE") &&
+        !currentUser.roles.includes("ROLE_ADMIN"))
+    ) {
+      navigate("/unauthorized");
+    } else {
+      loadResume();
+      loadProfilePhoto();
+    }
+  }, []);
+
+  const drivingLicenceOptions = [
+    "None",
+    "A",
+    "A1",
+    "A2",
+    "B",
+    "B2",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "International driver's license",
+  ];
 
   const validationSchema = Yup.object().shape({
     militaryStatus: Yup.string().when("gender", {
@@ -47,6 +75,7 @@ export default function Resumes() {
   const onSubmit = async (values, { resetForm }) => {
     setMessage("");
     setSuccess(false);
+
     const response = await resumeService.updateResume(values);
     if (response.data && response.data.message) {
       const message = {
@@ -57,8 +86,8 @@ export default function Resumes() {
       setSuccess(response.data.success);
       setShowPopup(true);
       setTimeout(() => {
-        navigate(-1);
         setSuccess(false);
+        window.location.reload();
       }, 3000);
     } else {
       setMessage("Update failed");
@@ -69,15 +98,12 @@ export default function Resumes() {
     resumeId: resumeId,
     jobTitle: "",
     gender: "",
+    drivingLicence: "",
     militaryStatus: "",
     postponedDate: "",
     linkedinAddress: "",
     githubAddress: "",
     personalWebsite: "",
-    country: "",
-    province: "",
-    city: "",
-    address: "",
   };
 
   const formik = useFormik({
@@ -90,7 +116,6 @@ export default function Resumes() {
     formik.setFieldValue(fieldName, value);
 
     if (fieldName === "gender") {
-      // Eğer "Male" seçildiyse askerlik durumu için select bileşenini göster
       if (value === "Male") {
         setShowMilitaryStatus(true);
         setShowPostponedDate(formik.values.militaryStatus === "Postponed");
@@ -98,10 +123,9 @@ export default function Resumes() {
         setShowMilitaryStatus(false);
         setShowPostponedDate(false);
         formik.setFieldValue("militaryStatus", "");
-        formik.setFieldValue("postponedDate", null);
+        formik.setFieldValue("postponedDate", "");
       }
     } else if (fieldName === "militaryStatus") {
-      // "Postponed" seçeneği seçildiğinde date bileşenini göster
       if (value === "Postponed") {
         setShowPostponedDate(true);
       } else {
@@ -116,51 +140,40 @@ export default function Resumes() {
       const result = await resumeService.getResumeById(resumeId);
       const resumeData = result.data.data;
 
-      formik.setFieldValue("jobTitle", resumeData.jobTitle || "");
-      formik.setFieldValue("gender", resumeData.gender || "");
-      formik.setFieldValue("militaryStatus", resumeData.militaryStatus || "");
-      formik.setFieldValue("postponedDate", resumeData.postponedDate || "");
-      formik.setFieldValue("linkedinAddress", resumeData.linkedinAddress || "");
-      formik.setFieldValue("githubAddress", resumeData.githubAddress || "");
-      formik.setFieldValue("personalWebsite", resumeData.personalWebsite || "");
-      formik.setFieldValue("country", resumeData.country || "");
-      formik.setFieldValue("country", resumeData.country || "");
-      formik.setFieldValue("province", resumeData.province || "");
-      formik.setFieldValue("city", resumeData.city || "");
-      formik.setFieldValue("address", resumeData.address || "");
+      if (
+        resumeData.employee?.id === currentUser.id ||
+        currentUser.roles.includes("ROLE_ADMIN")
+      ) {
+        formik.setFieldValue("jobTitle", resumeData.jobTitle || "");
+        formik.setFieldValue("gender", resumeData.gender || "");
+        formik.setFieldValue("drivingLicence", resumeData.drivingLicence || "");
+        formik.setFieldValue("militaryStatus", resumeData.militaryStatus || "");
+        formik.setFieldValue("postponedDate", resumeData.postponedDate || "");
+        formik.setFieldValue(
+          "linkedinAddress",
+          resumeData.linkedinAddress || ""
+        );
+        formik.setFieldValue("githubAddress", resumeData.githubAddress || "");
+        formik.setFieldValue(
+          "personalWebsite",
+          resumeData.personalWebsite || ""
+        );
 
-      if (resumeData.gender === "Male") {
-        setShowMilitaryStatus(true);
-        if (resumeData.militaryStatus === "Postponed") {
-          setShowPostponedDate(true);
+        if (resumeData.gender === "Male") {
+          setShowMilitaryStatus(true);
+          if (resumeData.militaryStatus === "Postponed") {
+            setShowPostponedDate(true);
+          }
         }
-      }
 
-      setResume(resumeData);
+        setResume(resumeData);
+      } else {
+        navigate("/unauthorized");
+      }
     } catch (error) {
       console.error("An error occurred while loading resume data:", error);
     }
   };
-
-  useEffect(() => {
-    loadResume();
-    loadProfilePhoto();
-    axios
-      .get("https://countriesnow.space/api/v0.1/countries")
-      .then((response) => {
-        // Extract the list of countries from the API response
-        const countryData = response.data.data;
-        const countryList = countryData.map((country) => ({
-          label: country.country,
-          value: country.country,
-        }));
-        // Set the list of countries to the state variable
-        setCountries(countryList);
-      })
-      .catch((error) => {
-        console.error("Error fetching countries data:", error);
-      });
-  }, []);
 
   const loadProfilePhoto = async () => {
     try {
@@ -178,78 +191,16 @@ export default function Resumes() {
       );
     }
   };
-  const handleUploadProfilePhoto = async () => {
-    // Yeni profil fotoğrafını yükleme işlemi
-    if (newProfilePhoto) {
-      const formData = new FormData();
-      formData.append("file", newProfilePhoto);
-
-      const response = await userService.uploadUserPhotoById(
-        currentUser.id,
-        formData
-      );
-
-      if (response.status === 200) {
-        const responseData = response.data;
-        if (responseData === "Profile photo uploaded successfully") {
-          // Burada Blob veya File nesnesiyle çalışabilirsiniz
-
-          const blob = new Blob([responseData], { type: "image/jpeg" }); // responseData'i uygun türde bir Blob nesnesine dönüştürün
-          const imageUrl = URL.createObjectURL(blob); // Blob nesnesini kullanarak URL oluşturun
-          setProfilePhoto(imageUrl); // Profil fotoğrafını ayarlayın
-          loadProfilePhoto();
-          setShowUploadPopup(true);
-          setIsUploadSuccess(true);
-
-          const message = {
-            title: "Changes saved",
-            content: "Photo uploaded successfully",
-          };
-          setPopupMessage(message);
-
-          setTimeout(() => {
-            window.location.reload();
-          }, 3000);
-
-          const fileInput = document.getElementById("file-upload");
-          if (fileInput) {
-            fileInput.value = ""; // Reset the file input value
-          }
-        } else {
-          console.log(
-            "Response verisi bir Blob veya File değil:",
-            responseData
-          );
-          // Hata durumunu ele alabilirsiniz
-        }
-      } else {
-        console.error("Profile photo upload failed:", response);
-        // Hata durumunu ele alabilirsiniz
-      }
-    }
-  };
-
-  const handleProfilePhotoChange = (e) => {
-    // Kullanıcı yeni profil fotoğrafını seçtiğinde bu fonksiyon çağrılır
-    const file = e.target.files[0];
-    setNewProfilePhoto(file);
-  };
 
   const handleDismissPopup = () => {
     setShowUploadPopup(false);
   };
 
-  const showUpdateModal = () => {
-    setIsUploadSuccess(true);
-  };
-
   return (
-    <div className="p-2 bg-gray-50">
-      <br />
-      <br />
+    <div className="p-2 mt-5 bg-gray-50">
       <Formik>
         <Form onSubmit={formik.handleSubmit}>
-          <div className="mx-auto md:mx-auto lg:px-[256px]">
+          <div className="mx-auto md:mx-auto lg:px-[256px] mt-8 lg:mt-6">
             <section className="rounded-lg bg-white sm:p-2 md:p-4 lg:p-8 shadow-xl hover:border-dashed border-2 hover:border-gray-500 justify-items-center mt-3 max-w-screen-full mx-auto px-4 md:px-8 sm:px-4">
               <div className="flex flex-col md:flex-row gap-4 rounded-xl p-3 mb-5 shadow-xl border">
                 <div className="rounded-full grid grid-rows-2 h-8 w-8 md:h-9 md:w-9 border-[3px] border-blue-200 p-[3px]">
@@ -268,7 +219,7 @@ export default function Resumes() {
                   )}
                 </div>
 
-                <ul className="flex flex-col sm:grid-cols-3">
+                <ul className="font-mulish font-medium flex flex-col sm:grid-cols-3">
                   <li
                     key="firstNameAndlastName"
                     className="text-left text-xl font-bold"
@@ -284,24 +235,48 @@ export default function Resumes() {
 
                   <li key="phoneNumber" className="text-left mt-2">
                     <span className="text-sm text-gray-500">Phone</span>
-                    <div className="font-bold">{currentUser.phoneNumber}</div>
+                    <div className="font-bold">
+                      {resume.employee?.phoneNumber}
+                    </div>
                   </li>
 
                   <li key="adressLine" className="text-left mt-2">
-                    <span className="text-sm text-gray-500">Adress</span>
-                    <div className="font-bold">
-                      {resume.city} - {resume.province}
-                    </div>
+                    {resume.employee?.country ||
+                    resume.employee?.province ||
+                    resume.employee?.city ? (
+                      <div className="mb-4">
+                        <span className="text-sm text-gray-500">Address</span>
+
+                        <div className="font-bold text-sm">
+                          {resume.employee?.address ? (
+                            <span>{resume.employee?.address}&nbsp;</span>
+                          ) : null}
+                        </div>
+                        <div className="font-bold text-sm">
+                          {resume.employee?.city ? (
+                            <span>{resume.employee?.city}&nbsp;</span>
+                          ) : null}
+                          {resume.employee?.province ? (
+                            <span>{resume.employee?.province}&nbsp;</span>
+                          ) : null}
+                          {resume.employee?.postalCode ? (
+                            <span>{resume.employee?.postalCode}&nbsp;</span>
+                          ) : null}
+                          {resume.employee?.country ? (
+                            <span>{resume.employee?.country}&nbsp;</span>
+                          ) : null}
+                        </div>
+                      </div>
+                    ) : null}
                   </li>
                 </ul>
               </div>
 
               <div className="divide-y space-y-3">
                 <div className="px-2 py-2">
-                  <div className="flex flex-row gap-5 sm:grid-cols-1 mt-4">
+                  <div className="font-mulish flex flex-row gap-5 sm:grid-cols-1 mt-4">
                     <div className="w-3/5">
-                      {" "}
-                      <h3 className="text-left font-semibold mb-4">
+                      <h3 className="text-left font-mulish font-semibold mb-4">
                         Private Information
                       </h3>
                       <div className="relative mb-3">
@@ -322,28 +297,54 @@ export default function Resumes() {
                           placeholder="Job Title"
                         />
                       </div>
-                      <div className="relative mb-3">
-                        <label
-                          className="grid justify-items-start text-sm font-bold ml-0.5 mb-1"
-                          htmlFor="Gender"
-                        >
-                          Gender
-                        </label>
-                        <select
-                          name="gender"
-                          onChange={(e) =>
-                            handleChange("gender", e.target.value)
-                          }
-                          value={formik.values.gender}
-                          className="w-full rounded-lg border-2 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shadow-sm"
-                        >
-                          <option value="">Select Gender</option>
-                          <option value="Male">Male</option>
-                          <option value="Female">Female</option>
-                          <option value="I don't wish to answer">
-                            I don't wish to answer
-                          </option>
-                        </select>
+                      <div className="flex">
+                        <div className="w-1/2 relative mb-3">
+                          <label
+                            className="grid justify-items-start text-sm font-bold ml-0.5 mb-1"
+                            htmlFor="Gender"
+                          >
+                            Gender
+                          </label>
+                          <select
+                            name="gender"
+                            onChange={(e) =>
+                              handleChange("gender", e.target.value)
+                            }
+                            value={formik.values.gender}
+                            className="w-full rounded-lg border-2 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shadow-sm"
+                          >
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="I don't wish to answer">
+                              I don't wish to answer
+                            </option>
+                          </select>
+                        </div>
+                        <div className="w-1/2 relative ml-1 mb-3">
+                          <label
+                            className="grid justify-items-start text-sm font-bold ml-0.5 mb-1"
+                            htmlFor="Gender"
+                          >
+                            Driving Licence
+                          </label>
+                          <select
+                            name="drivingLicence"
+                            onChange={(e) =>
+                              handleChange("drivingLicence", e.target.value)
+                            }
+                            value={formik.values.drivingLicence}
+                            className="w-full rounded-lg border-2 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shadow-sm"
+                          >
+                            <option value="">Select Driving Licence</option>
+
+                            {drivingLicenceOptions.map((option, index) => (
+                              <option key={index} value={option}>
+                                {option}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
                       </div>
                       {showMilitaryStatus && (
                         <div className="relative mb-3">
@@ -417,94 +418,13 @@ export default function Resumes() {
                             )}
                         </div>
                       )}
-                      <div className="relative mb-3">
-                        <label
-                          className="grid justify-items-start text-sm font-bold ml-0.5 mb-1"
-                          htmlFor="Country"
-                        >
-                          Country
-                        </label>
-                        <select
-                          name="country"
-                          onChange={(event, data) =>
-                            handleChange("country", data.value)
-                          }
-                          value={formik.values.country}
-                          className="w-full rounded-lg border-2 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shadow-sm"
-                        >
-                          <option value="">Select A Country...</option>
-                          {countries.map((country, index) => (
-                            <option key={index + 1} value={country.value}>
-                              {country.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="flex">
-                        <div className="w-1/2 relative mb-3">
-                          <label
-                            className="grid justify-items-start text-sm font-bold ml-0.5 mb-1"
-                            htmlFor="province"
-                          >
-                            Province/State
-                          </label>
-                          <input
-                            name="province"
-                            type="text"
-                            onChange={(e) =>
-                              handleChange("province", e.target.value)
-                            }
-                            value={formik.values.province}
-                            className="w-full rounded-lg border-2 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shadow-sm"
-                            placeholder="Province or State"
-                          />
-                        </div>
-                        <div className="w-1/2 relative mb-3 ml-1">
-                          <label
-                            className="grid justify-items-start text-sm font-bold ml-0.5 mb-1"
-                            htmlFor="city"
-                          >
-                            City/Town
-                          </label>
-                          <input
-                            name="city"
-                            type="text"
-                            onChange={(e) =>
-                              handleChange("city", e.target.value)
-                            }
-                            value={formik.values.city}
-                            className="w-full rounded-lg border-2 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shadow-sm"
-                            placeholder="City or Town"
-                          />
-                        </div>
-                      </div>
-                      <div className="relative mb-3">
-                        <label
-                          className="grid justify-items-start text-sm font-bold ml-0.5 mb-1"
-                          htmlFor="address"
-                        >
-                          Address Line
-                        </label>
-                        <input
-                          name="address"
-                          type="text"
-                          onChange={(e) =>
-                            handleChange("address", e.target.value)
-                          }
-                          value={formik.values.address}
-                          className="w-full rounded-lg border-2 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shadow-sm"
-                          placeholder="Address line"
-                        />
-                      </div>
-                    </div>
-                    <div className="w-2/5">
-                      <h3 className="text-left font-semibold mb-4">
+                      <h3 className="text-left font-mulish font-semibold mb-4 mt-6">
                         Social Media Information
                       </h3>
                       <div className="relative mb-3">
                         <label
                           className="grid justify-items-start text-sm font-bold ml-0.5 mb-1"
-                          htmlFor="email"
+                          htmlFor="linkedin"
                         >
                           Linkedin
                         </label>
@@ -534,7 +454,7 @@ export default function Resumes() {
                           className="grid justify-items-start text-sm font-bold ml-0.5 mb-1"
                           htmlFor="gitHub"
                         >
-                          GitHub
+                          Github
                         </label>
                         <input
                           name="gitHub"
@@ -557,7 +477,6 @@ export default function Resumes() {
                           </svg>
                         </span>
                       </div>
-
                       <div className="relative mb-3">
                         <label
                           className="grid justify-items-start text-sm font-bold ml-0.5 mb-1"
@@ -588,74 +507,12 @@ export default function Resumes() {
                       </div>
                     </div>
                   </div>
-                  <div className="col-span-2 mt-6">
-                    <h3 htmlFor="photo" className="text-left font-semibold">
-                      Profile photo
-                    </h3>
-                    <div className="mt-2 flex flex-col">
-                      {newProfilePhoto ? (
-                        <div className="flex">
-                          <img
-                            src={URL.createObjectURL(newProfilePhoto)}
-                            className="h-6 w-6 text-gray-300 rounded-full object-cover"
-                            aria-hidden="true"
-                          />
-                        </div>
-                      ) : (
-                        <div className="flex">
-                          <div className="">
-                            <img
-                              src={defaultProfilePhoto}
-                              className="h-6 w-6 text-gray-300"
-                              aria-hidden="true"
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="flex flex-col text-left mt-4">
-                        <div className="flex flex-row space-x-4">
-                          <div className="mt-2 mb-1">
-                            <input
-                              id="file-upload"
-                              name="file-upload"
-                              className="relative m-0 block w-[196px] min-w-0 flex-auto cursor-pointer rounded border border-solid border-neutral-300 bg-clip-padding px-3 py-[0.32rem] text-xs font-normal text-neutral-700 transition duration-300 ease-in-out file:-mx-3 file:-my-[0.32rem] file:cursor-pointer file:overflow-hidden file:rounded-none file:border-0 file:border-solid file:border-inherit file:bg-neutral-100 file:px-3 file:py-[0.32rem] file:text-neutral-700 file:transition file:duration-150 file:ease-in-out file:[border-inline-end-width:1px] file:[margin-inline-end:0.75rem] hover:file:bg-neutral-200 focus:border-primary focus:text-neutral-700 focus:shadow-te-primary focus:outline-none dark:border-neutral-600 dark:text-neutral-200 dark:file:bg-neutral-700 dark:file:text-neutral-100 dark:focus:border-primary"
-                              type="file"
-                              accept="image/*"
-                              onChange={handleProfilePhotoChange}
-                            />
-                          </div>
-                          <div className="text-left">
-                            <div className="text-left">
-                              <button
-                                type="button"
-                                className="rounded-md bg-white mt-1 px-[10px] py-[8px] text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-                                onClick={() => {
-                                  handleUploadProfilePhoto();
-                                  showUpdateModal();
-                                  setNewProfilePhoto(null);
-                                }}
-                              >
-                                Upload
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                        <div>
-                          {" "}
-                          <span className="text-xs font-bold text-gray-500">
-                            (PNG, JPG, GIF up to 10MB)
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
               <div className="flex justify-end">
                 <button
                   type="submit"
-                  className="gap-2 px-3 py-2 text-white bg-blue-400 rounded-full duration-150 hover:bg-blue-600 active:bg-indigo-700"
+                  className="font-mulish font-medium gap-2 px-3 py-2 text-white bg-blue-400 rounded-full duration-150 hover:bg-blue-600 active:bg-indigo-700"
                 >
                   Save
                 </button>
@@ -664,17 +521,21 @@ export default function Resumes() {
           </div>
           <ExperiencesList resumeId={resumeId} />
           <EducationsList resumeId={resumeId} />
+          <LanguagesList resumeId={resumeId} />
+          <SkillsList resumeId={resumeId} />
         </Form>
       </Formik>
       {showUploadPopup && (
         <ResumeSubmitPopup
           message={popupMessage}
+          success={isUploadSuccess}
           handleDismissPopup={handleDismissPopup}
         />
       )}
       {success && (
         <ResumeSubmitPopup
           message={message}
+          success={success}
           handleDismissPopup={handleDismissPopup}
         />
       )}

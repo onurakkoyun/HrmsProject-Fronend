@@ -1,20 +1,20 @@
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { Grid, Header, Icon, Modal, Segment } from "semantic-ui-react";
-import { Button } from "@material-tailwind/react";
+import React, { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
+import { Grid, Header, Icon, Modal, Segment } from 'semantic-ui-react'
+import { Button } from '@material-tailwind/react'
 
 export default function SignUp({ open, setOpen }) {
-  const [modalOpen, setModalOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false)
 
   useEffect(() => {
-    setModalOpen(open);
-  }, [open]);
+    setModalOpen(open)
+  }, [open])
 
   const handleModal = (value) => {
-    setModalOpen(value);
+    setModalOpen(value)
     // Modal'ı kapatırken, dışarıya bildiriyoruz
-    setOpen(value);
-  };
+    setOpen(value)
+  }
 
   return (
     <span>
@@ -35,7 +35,7 @@ export default function SignUp({ open, setOpen }) {
           <Grid>
             <Grid.Row>
               <Grid.Column width={7}>
-                <Link to={"/employee/add"}>
+                <Link to={'/employee/add'}>
                   <Button
                     className="rounded-full"
                     color="blue"
@@ -51,7 +51,7 @@ export default function SignUp({ open, setOpen }) {
                 </Segment>
               </Grid.Column>
               <Grid.Column width={5}>
-                <Link to={"/employer/add"}>
+                <Link to={'/employer/add'}>
                   <Button
                     className="rounded-full"
                     color="green"
@@ -66,5 +66,5 @@ export default function SignUp({ open, setOpen }) {
         </Modal.Actions>
       </Modal>
     </span>
-  );
+  )
 }

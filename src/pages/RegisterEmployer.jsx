@@ -33,7 +33,7 @@ export default function RegisterEmployee() {
       .url("Not a valid website address")
       .required("Required Field"),
     phoneNumber: Yup.string()
-      .matches(/^\d{11}$/, "Geçerli bir telefon numarası girin.") // 10 haneli sayı olmalı
+      .matches(/^\d{11}$/, "Enter a valid phone number") // 10 haneli sayı olmalı
       .required("Required Field"),
     password: Yup.string().required("Required Field"),
     confirmPassword: Yup.string()
