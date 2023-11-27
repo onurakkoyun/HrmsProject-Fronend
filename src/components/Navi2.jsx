@@ -11,10 +11,6 @@ import { Bars3Icon, XMarkIcon } from "@heroicons/react/20/solid";
 import SignUp from "./SignUp";
 import { Button } from "@material-tailwind/react";
 
-function classNames(...classes) {
-  return classes.filter(Boolean).join(" ");
-}
-
 export default function Navi2() {
   const [homeActiveItem, setHomeActiveItem] = useState(0);
   const [findJobsActiveItem, setFindJobsActiveItem] = useState(null);
@@ -45,6 +41,26 @@ export default function Navi2() {
     setIsSignUpModalOpen(true);
   };
 
+  const loadUserPhoto = useCallback(async () => {
+    try {
+      if (currentUser) {
+        let userService = new UserService();
+        const response = await userService.getUserPhotoById(currentUser.id);
+
+        if (response.status === 200) {
+          const imageBlob = response.data;
+          const imageUrl = URL.createObjectURL(imageBlob);
+          setProfilePhoto(imageUrl);
+        }
+      }
+    } catch (error) {
+      console.error(
+        "An error occurred while retrieving the profile photo.",
+        error.response
+      );
+    }
+  }, [currentUser]);
+
   const logOut = useCallback(() => {
     dispatch(logout());
     navigate("/");
@@ -63,7 +79,7 @@ export default function Navi2() {
       setShowEmployerBoard(false);
       setShowAdminBoard(false);
     }
-  }, [currentUser]);
+  }, [currentUser, loadUserPhoto]);
 
   useEffect(() => {
     if (location.pathname === "/") {
@@ -107,24 +123,6 @@ export default function Navi2() {
       setAboutUsActiveItem(1);
     }
   }, [location.pathname, currentUser]);
-
-  const loadUserPhoto = async () => {
-    try {
-      let userService = new UserService();
-      const response = await userService.getUserPhotoById(currentUser.id);
-
-      if (response.status === 200) {
-        const imageBlob = response.data;
-        const imageUrl = URL.createObjectURL(imageBlob);
-        setProfilePhoto(imageUrl);
-      }
-    } catch (error) {
-      console.error(
-        "An error occurred while retrieving the profile photo.",
-        error.response
-      );
-    }
-  };
 
   return (
     <header className="bg-white fixed top-[0px] left-[0px] w-full z-50">

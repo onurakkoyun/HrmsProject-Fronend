@@ -483,7 +483,7 @@ export default function EmployeeProfile() {
               <div className="pb-2">
                 <button
                   type="submit"
-                  className="w-full px-4 py-2 text-white font-medium bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-600 rounded-lg duration-150"
+                  className="w-full px-4 py-2 text-white font-medium bg-[#5a2bdb] hover:bg-opacity-90 rounded-lg duration-150"
                 >
                   Submit
                 </button>

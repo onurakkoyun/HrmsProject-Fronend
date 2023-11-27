@@ -1,50 +1,50 @@
-import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import AuthService from '../services/authUser.service'
-import SignUp from './SignUp'
-import * as Yup from 'yup'
-import { Label } from 'semantic-ui-react'
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import AuthService from "../services/authUser.service";
+import SignUp from "./SignUp";
+import * as Yup from "yup";
+import { Label } from "semantic-ui-react";
 
-import { Formik, Field, ErrorMessage } from 'formik'
+import { Formik, Field, ErrorMessage } from "formik";
 
 const validationSchema = Yup.object().shape({
-  username: Yup.string().required('Field is required!'),
-  password: Yup.string().required('Field is required!'),
-})
+  username: Yup.string().required("Field is required!"),
+  password: Yup.string().required("Field is required!"),
+});
 
 export default function Login() {
-  const navigate = useNavigate()
-  const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState('')
-  const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSignUpClick = () => {
-    setIsSignUpModalOpen(true)
-  }
+    setIsSignUpModalOpen(true);
+  };
 
   useEffect(() => {
-    let timer
+    let timer;
     if (message) {
       // Set a timer to clear the message after 3000 milliseconds (3 seconds)
       timer = setTimeout(() => {
-        setMessage('')
-      }, 3000)
+        setMessage("");
+      }, 3000);
     }
     return () => {
       // Clean up the timer when the component unmounts or when message changes
-      clearTimeout(timer)
-    }
-  }, [message])
+      clearTimeout(timer);
+    };
+  }, [message]);
 
   const handleLogin = (values) => {
-    setMessage('')
-    setLoading(true)
+    setMessage("");
+    setLoading(true);
 
     AuthService.login(values.username, values.password).then(
       () => {
-        navigate('/')
-        window.location.reload()
+        navigate("/");
+        window.location.reload();
       },
       (error) => {
         const resMessage =
@@ -52,18 +52,18 @@ export default function Login() {
             error.response.data &&
             error.response.data.message) ||
           error.message ||
-          error.toString()
+          error.toString();
 
-        setLoading(false)
-        setMessage(resMessage)
-      },
-    )
-  }
+        setLoading(false);
+        setMessage(resMessage);
+      }
+    );
+  };
 
   return (
     <div>
       <Formik
-        initialValues={{ username: '', password: '' }}
+        initialValues={{ username: "", password: "" }}
         onSubmit={handleLogin}
         validationSchema={validationSchema} // Use Yup's validation schema
       >
@@ -90,7 +90,7 @@ export default function Login() {
                 </p>
 
                 <div>
-                  <label className="font-mulish font-bold text-sm text-gray-600 grid justify-items-start">
+                  <label className="font-mulish font-bold text-sm text-gray-900 grid justify-items-start">
                     Email / Username
                   </label>
 
@@ -135,7 +135,7 @@ export default function Login() {
                 </div>
 
                 <div>
-                  <label className="font-mulish font-bold text-sm text-gray-600 grid justify-items-start">
+                  <label className="font-mulish font-bold text-sm text-gray-900 grid justify-items-start">
                     Password
                   </label>
 
@@ -183,7 +183,7 @@ export default function Login() {
                     </span>
                     <Field
                       name="password"
-                      type={showPassword ? 'text' : 'password'}
+                      type={showPassword ? "text" : "password"}
                       placeholder="Enter your password"
                       className="w-full pr-6 pl-3 py-3 text-gray-800 bg-transparent outline-none border-2 focus:border-indigo-600 shadow-sm rounded-lg"
                     />
@@ -225,7 +225,7 @@ export default function Login() {
                   <a
                     className="underline"
                     onClick={handleSignUpClick}
-                    style={{ cursor: 'pointer' }}
+                    style={{ cursor: "pointer" }}
                   >
                     Sign up
                   </a>
@@ -240,5 +240,5 @@ export default function Login() {
         )}
       </Formik>
     </div>
-  )
+  );
 }

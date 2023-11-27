@@ -227,17 +227,26 @@ export default function JobPostingDetail() {
                       </div>
                     </div>
                   </div>
-                  <div>
-                    <Link className="block text-left text-md text-blue-500 font-bold mb-1 ml-1">
-                      {jobPosting.employer?.companyName}
-                    </Link>
-                    <div className="block text-left text-md text-blue-500 font-bold mb-1 ml-1">
-                      <Link to={"mailto:" + jobPosting.employer?.email}>
+                  <div className="block font-bold">
+                    <div className="mb-1 ml-1">
+                      <Link className="text-left text-md text-blue-500">
+                        {jobPosting.employer?.companyName}
+                      </Link>
+                    </div>
+                    <div className="mb-1 ml-1">
+                      <Link
+                        className="text-left text-md text-blue-500"
+                        to={"mailto:" + jobPosting.employer?.email}
+                      >
                         {jobPosting.employer?.email}
                       </Link>
                     </div>
-                    <div className="block text-left text-md text-blue-500 font-bold mb-1 ml-1">
-                      <Link to={jobPosting.employer?.website} target="_blank">
+                    <div className="mb-1 ml-1">
+                      <Link
+                        className="text-left text-md text-blue-500"
+                        to={jobPosting.employer?.website}
+                        target="_blank"
+                      >
                         {jobPosting.employer?.website &&
                           jobPosting.employer.website.replace(
                             /^https?:\/\//,
@@ -268,7 +277,7 @@ export default function JobPostingDetail() {
                         <div>
                           <button
                             type="submit"
-                            className="px-5 py-2 rounded-full text-white transition ease-in-out delay-0 bg-blue-800 hover:-translate-y-0 hover:scale-110 hover:bg-blue-600 duration-300"
+                            className="px-5 py-2 font-bold rounded-full text-white transition ease-in-out delay-0 bg-[#5a2bdb] hover:-translate-y-0 hover:scale-110 hover:bg-opacity-90 duration-300"
                             onClick={() => {
                               handleApplyClick();
                             }}

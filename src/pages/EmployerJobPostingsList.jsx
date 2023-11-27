@@ -124,7 +124,7 @@ export default function EmployerJobPostingsList() {
                 +
               </span>
               <span className="font-mulish font-bold text-md transition-all group-hover:ms-3">
-                New Job Post
+                Create new job
               </span>
             </button>
           </div>

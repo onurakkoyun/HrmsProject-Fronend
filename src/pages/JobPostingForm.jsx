@@ -1,126 +1,126 @@
-import React, { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { useSelector } from 'react-redux'
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
-import ContentTitle from '../components/ContentTitle'
-import JobPostingService from './../services/jobPostingService'
+import ContentTitle from "../components/ContentTitle";
+import JobPostingService from "./../services/jobPostingService";
 
-import JobTitleService from './../services/jobTitleService'
-import CityService from './../services/cityService'
-import WorkingTypeService from './../services/workingTypeService'
-import { Formik, useFormik } from 'formik'
-import * as Yup from 'yup'
-import { Container, Grid, Label, Form } from 'semantic-ui-react'
-import MessageModal from '../components/MessageModal'
-import { Editor } from '@tinymce/tinymce-react'
-import { useRef } from 'react'
+import JobTitleService from "./../services/jobTitleService";
+import CityService from "./../services/cityService";
+import WorkingTypeService from "./../services/workingTypeService";
+import { Formik, useFormik } from "formik";
+import * as Yup from "yup";
+import { Container, Grid, Label, Form } from "semantic-ui-react";
+import MessageModal from "../components/MessageModal";
+import { Editor } from "@tinymce/tinymce-react";
+import { useRef } from "react";
 
-let jobPostingService = new JobPostingService()
-let jobTitleService = new JobTitleService()
-let cityService = new CityService()
-let workingTypeService = new WorkingTypeService()
+let jobPostingService = new JobPostingService();
+let jobTitleService = new JobTitleService();
+let cityService = new CityService();
+let workingTypeService = new WorkingTypeService();
 
 export default function JobPostingForm() {
-  const { id } = useParams()
-  const [open, setOpen] = useState(false)
-  const [jobTitles, setJobTitles] = useState([]) // Renamed state to jobTitles
-  const [cities, setCities] = useState([])
-  const [workingTypes, setWorkingTypes] = useState([])
-  const [wageCurrency, setWageCurrency] = useState('₺')
-  const [message, setMessage] = useState('')
-  const [success, setSuccess] = useState(false)
-  const navigate = useNavigate()
-  const editorRef = useRef(null)
+  const { id } = useParams();
+  const [open, setOpen] = useState(false);
+  const [jobTitles, setJobTitles] = useState([]); // Renamed state to jobTitles
+  const [cities, setCities] = useState([]);
+  const [workingTypes, setWorkingTypes] = useState([]);
+  const [wageCurrency, setWageCurrency] = useState("₺");
+  const [message, setMessage] = useState("");
+  const [success, setSuccess] = useState(false);
+  const navigate = useNavigate();
+  const editorRef = useRef(null);
 
-  const { user: currentUser } = useSelector((state) => state.auth)
+  const { user: currentUser } = useSelector((state) => state.auth);
 
   useEffect(() => {
     if (currentUser) {
-      const hasEmployerRole = currentUser.roles.includes('ROLE_EMPLOYER')
-      const hasAdminRole = currentUser.roles.includes('ROLE_ADMIN')
+      const hasEmployerRole = currentUser.roles.includes("ROLE_EMPLOYER");
+      const hasAdminRole = currentUser.roles.includes("ROLE_ADMIN");
       if (hasEmployerRole || hasAdminRole) {
         jobTitleService
           .getJobTitles()
-          .then((result) => setJobTitles(result.data.data))
-        cityService.getCities().then((result) => setCities(result.data.data))
+          .then((result) => setJobTitles(result.data.data));
+        cityService.getCities().then((result) => setCities(result.data.data));
         workingTypeService
           .getWorkingTypes()
-          .then((result) => setWorkingTypes(result.data.data))
+          .then((result) => setWorkingTypes(result.data.data));
       } else {
-        navigate('/unauthorized')
+        navigate("/unauthorized");
       }
     } else {
-      navigate('/unauthorized')
+      navigate("/unauthorized");
     }
-  }, [currentUser, navigate])
+  }, [currentUser, navigate]);
 
   const handleModal = (value) => {
     if (!value) {
-      setMessage('')
+      setMessage("");
     }
-    setOpen(value)
-  }
+    setOpen(value);
+  };
 
   const handleChange = (fieldName, value) => {
-    formik.setFieldValue(fieldName, value)
-  }
+    formik.setFieldValue(fieldName, value);
+  };
 
   const handleCurrencyChange = (event) => {
-    setWageCurrency(event.target.value)
-  }
+    setWageCurrency(event.target.value);
+  };
 
   const initialValues = {
     employer: { id: id },
-    jobTitle: '',
-    city: '',
-    workingType: '',
-    salaryMin: '',
-    salaryMax: '',
-    availablePosition: '',
-    applicationDeadline: '',
-    jobSummary: '',
-    jobDescription: '',
+    jobTitle: "",
+    city: "",
+    workingType: "",
+    salaryMin: "",
+    salaryMax: "",
+    availablePosition: "",
+    applicationDeadline: "",
+    jobSummary: "",
+    jobDescription: "",
     active: true,
-  }
+  };
 
   const validationSchema = Yup.object({
-    jobTitle: Yup.object().required('Required Field'),
-    city: Yup.object().required('Required Field'),
-    workingType: Yup.object().required('Required Field'),
+    jobTitle: Yup.object().required("Required Field"),
+    city: Yup.object().required("Required Field"),
+    workingType: Yup.object().required("Required Field"),
     availablePosition: Yup.number()
-      .positive('Not a Positive Number')
-      .required('Required Field'),
-    applicationDeadline: Yup.date().required('Required Field'),
+      .positive("Not a Positive Number")
+      .required("Required Field"),
+    applicationDeadline: Yup.date().required("Required Field"),
     jobSummary: Yup.string()
-      .max(200, 'Over 200 Characters')
-      .min(100, 'Less than 100 Characters')
-      .required('Required Field'),
+      .max(200, "Over 200 Characters")
+      .min(100, "Less than 100 Characters")
+      .required("Required Field"),
     jobDescription: Yup.string()
-      .max(20000, 'Over 20000 Characters')
-      .required('Required Field'),
-  })
+      .max(20000, "Over 20000 Characters")
+      .required("Required Field"),
+  });
 
   const onSubmit = async (values, { resetForm }) => {
-    setMessage('')
-    setSuccess(false)
+    setMessage("");
+    setSuccess(false);
     const jobPostingData = {
       ...values,
       salaryMin: `${wageCurrency}${values.salaryMin}`,
       salaryMax: `${wageCurrency}${values.salaryMax}`,
-    }
+    };
 
     if (currentUser.id.toString() === id) {
       jobPostingService.addJobPosting(jobPostingData).then(
         (response) => {
-          setSuccess(response.data.success)
-          setMessage(response.data.message)
-          handleModal(true)
+          setSuccess(response.data.success);
+          setMessage(response.data.message);
+          handleModal(true);
           setTimeout(() => {
-            resetForm()
-            formik.setFieldValue('jobTitle', '')
-            formik.setFieldValue('city', '')
-            formik.setFieldValue('workingType', '')
-          }, 100)
+            resetForm();
+            formik.setFieldValue("jobTitle", "");
+            formik.setFieldValue("city", "");
+            formik.setFieldValue("workingType", "");
+          }, 100);
         },
         (error) => {
           const resMessage =
@@ -128,22 +128,22 @@ export default function JobPostingForm() {
               error.response.data &&
               error.response.data.message) ||
             error.message ||
-            error.toString()
+            error.toString();
 
-          setMessage(resMessage)
-          setSuccess(false)
-        },
-      )
+          setMessage(resMessage);
+          setSuccess(false);
+        }
+      );
     } else {
-      navigate('/unauthorized')
+      navigate("/unauthorized");
     }
-  }
+  };
 
   const formik = useFormik({
     initialValues: initialValues,
     validationSchema: validationSchema,
     onSubmit: onSubmit,
-  })
+  });
 
   return (
     <div>
@@ -191,9 +191,9 @@ export default function JobPostingForm() {
                       <select
                         name="jobTitle"
                         onChange={(event) =>
-                          handleChange('jobTitle.titleId', event.target.value)
+                          handleChange("jobTitle.titleId", event.target.value)
                         }
-                        value={formik.values.jobTitle?.titleId || ''}
+                        value={formik.values.jobTitle?.titleId || ""}
                         className="w-[432px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shadow-sm"
                       >
                         <option value="">Select a job title...</option>
@@ -235,9 +235,9 @@ export default function JobPostingForm() {
                       <select
                         name="city"
                         onChange={(event) =>
-                          handleChange('city.cityId', event.target.value)
+                          handleChange("city.cityId", event.target.value)
                         }
-                        value={formik.values.city?.cityId || ''}
+                        value={formik.values.city?.cityId || ""}
                         className="w-[432px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shadow-sm"
                       >
                         <option value="">Select a city...</option>
@@ -278,11 +278,11 @@ export default function JobPostingForm() {
                         name="workingType"
                         onChange={(event) =>
                           handleChange(
-                            'workingType.workingTypeId',
-                            event.target.value,
+                            "workingType.workingTypeId",
+                            event.target.value
                           )
                         }
-                        value={formik.values.workingType?.workingTypeId || ''}
+                        value={formik.values.workingType?.workingTypeId || ""}
                         className="w-[432px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 text-md shadow-sm"
                       >
                         <option value="">Select a working type...</option>
@@ -329,7 +329,7 @@ export default function JobPostingForm() {
                         className="w-[432px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shafow-sm"
                         placeholder="Enter available position"
                         onChange={(event) =>
-                          handleChange('availablePosition', event.target.value)
+                          handleChange("availablePosition", event.target.value)
                         }
                         value={formik.values.availablePosition}
                       />
@@ -364,12 +364,12 @@ export default function JobPostingForm() {
                         className="mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shadow-sm"
                         onChange={(event) =>
                           handleChange(
-                            'applicationDeadline',
-                            event.target.value,
+                            "applicationDeadline",
+                            event.target.value
                           )
                         }
                         value={formik.values.applicationDeadline}
-                        min={new Date().toISOString().split('T')[0]} // Bugünün tarihini alır
+                        min={new Date().toISOString().split("T")[0]} // Bugünün tarihini alır
                       />
                     </div>
 
@@ -405,7 +405,7 @@ export default function JobPostingForm() {
                           className="w-[118px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shafow-sm"
                           placeholder="Enter min wage"
                           onChange={(event) =>
-                            handleChange('salaryMin', event.target.value)
+                            handleChange("salaryMin", event.target.value)
                           }
                           value={formik.values.salaryMin}
                         />
@@ -426,7 +426,7 @@ export default function JobPostingForm() {
                           className="rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shafow-sm"
                           placeholder="Enter max wage"
                           onChange={(event) =>
-                            handleChange('salaryMax', event.target.value)
+                            handleChange("salaryMax", event.target.value)
                           }
                           value={formik.values.salaryMax}
                         />
@@ -467,7 +467,7 @@ export default function JobPostingForm() {
                         className="mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shadow-sm"
                         placeholder="Enter subtitle"
                         onChange={(event) =>
-                          handleChange('jobSummary', event.target.value)
+                          handleChange("jobSummary", event.target.value)
                         }
                         value={formik.values.jobSummary}
                       />
@@ -502,17 +502,17 @@ export default function JobPostingForm() {
                             height: 300,
                             menubar: true,
                             plugins: [
-                              'advlist autolink lists link image charmap print preview anchor',
-                              'searchreplace visualblocks code fullscreen',
-                              'insertdatetime media table paste code help wordcount',
+                              "advlist autolink lists link image charmap print preview anchor",
+                              "searchreplace visualblocks code fullscreen",
+                              "insertdatetime media table paste code help wordcount",
                             ],
                             toolbar:
-                              'undo redo | formatselect | bold italic backcolor | \
+                              "undo redo | formatselect | bold italic backcolor | \
             alignleft aligncenter alignright alignjustify | \
-            bullist numlist outdent indent | removeformat | help',
+            bullist numlist outdent indent | removeformat | help",
                           }}
                           onEditorChange={(content) =>
-                            formik.setFieldValue('jobDescription', content)
+                            formik.setFieldValue("jobDescription", content)
                           }
                           value={formik.values.jobDescription}
                         />
@@ -536,7 +536,7 @@ export default function JobPostingForm() {
                       type="submit"
                       className="mt-2 inline-block rounded-lg w-[394px] h-[42px] text-medium text-white font-mulish font-bold hover:bg-shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-400 bg-[#4832a8] hover:bg-[#3240a8]"
                     >
-                      Create Job Posting
+                      Post
                     </button>
                   </Form>
                 </Formik>
@@ -555,5 +555,5 @@ export default function JobPostingForm() {
         )}
       </Container>
     </div>
-  )
+  );
 }

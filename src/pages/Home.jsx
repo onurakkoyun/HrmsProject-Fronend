@@ -1,17 +1,17 @@
-import React from 'react'
-import CtaPhoto from '../images/search-job-2.jpg'
+import React from "react";
+import CtaPhoto from "../images/search-job-2.jpg";
 
 const Home = () => {
   return (
     <div>
-      <section className="mt-6 lg:mt-4 overflow-hidden bg-gray-50 sm:grid sm:grid-cols-2 sm:items-center">
+      <section className="mt-6 lg:mt-2 overflow-hidden bg-gray-50 sm:grid sm:grid-cols-2 sm:items-center">
         <div className="p-4 md:p-6 lg:px-8 lg:py-10">
           <div className="mx-auto max-w-xl text-center ltr:sm:text-left rtl:sm:text-right">
-            <h2 className="bg-gradient-to-r from-green-300 via-blue-500 to-purple-600 bg-clip-text text-transparent text-left text-3xl font-extrabold sm:text-5xl md:text-3xl">
-              Explore Business Opportunities Now
+            <h2 className="bg-gradient-to-r from-green-300 via-blue-500 to-purple-600 leading-10 bg-clip-text text-transparent text-left text-3xl font-[800] sm:text-5xl md:text-4xl">
+              Explore Business Opportunities Now!
             </h2>
 
-            <p className="bg-gradient-to-r from-purple-300 via-pink-500 to-red-600 bg-clip-text text-transparent text-left text-3xl font-extrabold sm:text-5xl md:text-3xl">
+            <p className="bg-gradient-to-r from-purple-300 via-pink-500 to-red-600 bg-clip-text text-transparent text-left text-3xl font-[800] sm:text-5xl md:text-4xl">
               Ready to Level Up Your Career?
             </p>
             <p className="hidden text-left text-gray-500 md:mt-4 md:block">
@@ -298,7 +298,7 @@ const Home = () => {
                 Some global companies whose
               </span>
               <span className="mb-4 text-gray-800 text-2xl font-mulish font-semibold sm:text-3xl">
-                {' '}
+                {" "}
                 advertisements were published
               </span>
               <p className="text-gray-600 mt-3">
@@ -527,7 +527,7 @@ const Home = () => {
         </div>
       </section>
     </div>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;

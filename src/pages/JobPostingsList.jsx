@@ -55,31 +55,37 @@ export default function JobPostingsList() {
   useEffect(() => {
     const fetchAppliedJobs = async () => {
       try {
-        const jobsWithPhotos = await Promise.all(
-          jobPostings.map(async (jobPosting) => {
-            const userPhotoResponse = await userService.getUserPhotoById(
-              jobPosting?.employer.id
-            );
-
-            if (userPhotoResponse.status === 200) {
-              const imageBlob = userPhotoResponse.data;
-              const imageUrl = URL.createObjectURL(imageBlob);
-              return {
-                ...jobPosting,
-                profilePhoto: imageUrl,
-              };
-            }
-
-            return jobPosting;
-          })
+        // Kullanıcılardan alınan ID'leri bir diziye topla
+        const employerIds = jobPostings.map(
+          (jobPosting) => jobPosting?.employer.id
         );
 
-        // Yalnızca profil fotoğrafları yüklenmemişse set işlemini gerçekleştir
-        if (jobsWithPhotos.some((job) => job.profilePhoto)) {
-          setJobPostings(jobsWithPhotos);
-        }
+        // Toplu istek ile profil fotoğraflarını al
+        const userPhotoResponses = await Promise.all(
+          employerIds.map((employerId) =>
+            userService.getUserPhotoById(employerId)
+          )
+        );
+
+        // Her fotoğraf için URL oluştur ve iş ilanlarına ekleyerek set işlemini gerçekleştir
+        const jobsWithPhotos = jobPostings.map((jobPosting, index) => {
+          const userPhotoResponse = userPhotoResponses[index];
+
+          if (userPhotoResponse.status === 200) {
+            const imageBlob = userPhotoResponse.data;
+            const imageUrl = URL.createObjectURL(imageBlob);
+            return {
+              ...jobPosting,
+              profilePhoto: imageUrl,
+            };
+          }
+
+          return jobPosting;
+        });
+
+        setJobPostings(jobsWithPhotos);
       } catch (error) {
-        console.error("Başvurulan işler alınırken bir hata oluştu", error);
+        console.error("An error occurred while retrieving jobs", error);
       }
     };
 

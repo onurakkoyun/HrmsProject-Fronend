@@ -463,7 +463,7 @@ export default function ApplyToJobPosting(open, setOpen, showPopupCallback) {
               <div className="text-right">
                 <button
                   type="submit"
-                  className="px-3 py-2 rounded-lg text-white transition ease-in-out delay-0 bg-indigo-900 hover:-translate-y-0 hover:scale-110 hover:bg-indigo-800 duration-300"
+                  className="px-3 py-2 font-bold rounded-lg text-white transition ease-in-out delay-0 bg-[#5a2bdb] hover:-translate-y-0 hover:scale-110 hover:bg-opacity-90 duration-300"
                 >
                   Complete
                 </button>
