@@ -91,6 +91,9 @@ export default function ApplyToJobPosting(open, setOpen, showPopupCallback) {
     jobPosting: { jobPostingId: id },
     resume: "",
     coverLetter: "",
+    letterId: "",
+    letterName: "",
+    letterContent: "",
   };
 
   const validationSchema = Yup.object().shape({
@@ -101,6 +104,14 @@ export default function ApplyToJobPosting(open, setOpen, showPopupCallback) {
   const onSubmit = async (values, { resetForm }) => {
     setMessage("");
     setSuccess(false);
+
+    const selectedCoverLetter = coverLetters.find(
+      (coverLetter) => coverLetter.letterId === values.coverLetter.letterId
+    );
+
+    values.letterId = selectedCoverLetter.letterId;
+    values.letterName = selectedCoverLetter.letterName;
+    values.letterContent = selectedCoverLetter.letterContent;
 
     applyService.addApplication(values).then(
       (response) => {

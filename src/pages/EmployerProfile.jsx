@@ -352,7 +352,7 @@ export default function EmployerProfile() {
                   htmlFor="photo"
                   className="text-md font-mulish font-bold"
                 >
-                  Profile photo
+                  Company logo
                 </label>
                 <div className="flex flex-col sm:flex-row items-center">
                   {newProfilePhoto ? (

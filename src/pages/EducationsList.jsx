@@ -261,10 +261,13 @@ export default function EducationsList({ resumeId }) {
               <button
                 type="button"
                 onClick={handleCreateNewEducationClick}
-                className="grid tracking-wide justify-items-center mt-2 mb-2 rounded-lg border border-dashed border-gray-900/25 active:border-[#69d11c] px-[86px] py-[8px] sm:px-[136px] sm:py-[16px] hover:underline"
+                className="flex group tracking-wide justify-items-center items-center gap-x-2 mt-2 mb-2 rounded-lg border border-dashed border-gray-900/25 hover:border-solid hover:border-green-500 hover:shadow-md active:border-[#69d11c] px-[86px] py-[8px] sm:px-[136px] sm:py-[16px]"
               >
-                <span className="font-mulish font-bold flex text-center text-md leading-6 text-[#69d11c]">
-                  + &nbsp;&nbsp;Add Education
+                <span className="text-2xl text-gray-900/70 group-hover:text-green-500">
+                  +
+                </span>
+                <span className="font-mulish font-bold flex text-center text-md group-hover:text-green-500 group-hover:underline leading-8 text-gray-900/70">
+                  New education
                 </span>
               </button>
               <NewEducationPopup

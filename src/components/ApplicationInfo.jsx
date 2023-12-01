@@ -295,8 +295,8 @@ export default function ApplicationInfo({
           </div>
           <div className="text-left bg-gray-50 sm:p-2 md:p-3 lg:p-5 whitespace-pre-wrap">
             <div>
-              {application.coverLetter ? (
-                <span>{application.coverLetter?.letterContent}</span>
+              {application.letterContent ? (
+                <span>{application.letterContent}</span>
               ) : (
                 <div className="text-center sm:p-2 md:p-3 lg:p-5">
                   <p className="inline-flex font-mulish font-medium items-center rounded-full bg-blue-50 px-8.5 py-2 text-md text-blue-800 ring-1 ring-inset ring-blue-600/20">

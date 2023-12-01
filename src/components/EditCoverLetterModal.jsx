@@ -1,93 +1,93 @@
-import React from 'react'
-import { useEffect } from 'react'
-import { useState } from 'react'
-import { Form, Formik, useFormik } from 'formik'
-import * as Yup from 'yup'
-import { Divider, Label, Modal } from 'semantic-ui-react'
-import { useParams } from 'react-router-dom'
-import CoverLetterService from '../services/coverLetterService'
-import ResumeSubmitPopup from './ResumeSubmitPopup'
+import React from "react";
+import { useEffect } from "react";
+import { useState } from "react";
+import { Form, Formik, useFormik } from "formik";
+import * as Yup from "yup";
+import { Divider, Label, Modal } from "semantic-ui-react";
+import { useParams } from "react-router-dom";
+import CoverLetterService from "../services/coverLetterService";
+import ResumeSubmitPopup from "./ResumeSubmitPopup";
 
-let letterService = new CoverLetterService()
+let letterService = new CoverLetterService();
 export default function EditCoverLetterModal({
   letterId,
   open,
   setOpen,
   showPopupCallback,
 }) {
-  const { id } = useParams()
-  const [letter, setLetter] = useState({})
-  const [modalOpen, setModalOpen] = useState(false)
-  const [showPopup, setShowPopup] = useState(false)
-  const [message, setMessage] = useState('')
-  const [success, setSuccess] = useState(false)
+  const { id } = useParams();
+  const [letter, setLetter] = useState({});
+  const [modalOpen, setModalOpen] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
+  const [message, setMessage] = useState("");
+  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
-    if (letterId !== '' && letterId !== undefined) {
-      loadLetter()
+    if (letterId !== "" && letterId !== undefined) {
+      loadLetter();
     }
-    setModalOpen(open)
-  }, [open])
+    setModalOpen(open);
+  }, [open]);
 
   const loadLetter = async () => {
     try {
-      const result = await letterService.getLetterById(letterId)
-      const letterData = result.data.data
+      const result = await letterService.getLetterById(letterId);
+      const letterData = result.data.data;
 
-      formik.setFieldValue('letterId', letterData.letterId || '')
-      formik.setFieldValue('letterName', letterData.letterName || '')
-      formik.setFieldValue('letterContent', letterData.letterContent || '')
+      formik.setFieldValue("letterId", letterData.letterId || "");
+      formik.setFieldValue("letterName", letterData.letterName || "");
+      formik.setFieldValue("letterContent", letterData.letterContent || "");
 
-      setLetter(letterData)
+      setLetter(letterData);
     } catch (error) {
-      console.error('An error occurred while loading letter data:', error)
+      console.error("An error occurred while loading letter data:", error);
     }
-  }
+  };
 
   const handleModal = (value) => {
     if (!value) {
-      setMessage('')
-      formik.resetForm()
+      setMessage("");
+      formik.resetForm();
     }
-    setModalOpen(value)
-    setOpen(value)
+    setModalOpen(value);
+    setOpen(value);
 
-    formik.setFieldValue('letterId', '')
-    formik.setFieldValue('letterName', '')
-  }
+    formik.setFieldValue("letterId", "");
+    formik.setFieldValue("letterName", "");
+  };
 
   const handleDismissPopup = () => {
-    setShowPopup(false)
-  }
+    setShowPopup(false);
+  };
 
   const initialValues = {
     employee: { id: id },
     letterId: letterId,
-    letterName: '',
-    letterContent: '',
-  }
+    letterName: "",
+    letterContent: "",
+  };
 
   const validationSchema = Yup.object({
     letterName: Yup.string()
-      .max(30, 'Over 30 Characters')
-      .min(3, 'Less than 3 Characters')
-      .required('Required Field'),
-    letterContent: Yup.string().required('Required Field'),
-  })
+      .max(30, "Over 30 Characters")
+      .min(3, "Less than 3 Characters")
+      .required("Required Field"),
+    letterContent: Yup.string().required("Required Field"),
+  });
 
   const onSubmit = async (values, { resetForm }) => {
-    setMessage('')
-    setSuccess(false)
+    setMessage("");
+    setSuccess(false);
 
     letterService.updateLetter(values).then(
       (response) => {
-        setSuccess(response.data.success)
-        setMessage(response.data.message)
-        setShowPopup(true)
+        setSuccess(response.data.success);
+        setMessage(response.data.message);
+        setShowPopup(true);
         setTimeout(() => {
-          resetForm()
-          showPopupCallback()
-        }, 100)
+          resetForm();
+          showPopupCallback();
+        }, 100);
       },
       (error) => {
         const resMessage =
@@ -95,19 +95,19 @@ export default function EditCoverLetterModal({
             error.response.data &&
             error.response.data.message) ||
           error.message ||
-          error.toString()
+          error.toString();
 
-        setMessage(resMessage)
-        setSuccess(false)
-      },
-    )
-  }
+        setMessage(resMessage);
+        setSuccess(false);
+      }
+    );
+  };
 
   const formik = useFormik({
     initialValues: initialValues,
     validationSchema: validationSchema,
     onSubmit: onSubmit,
-  })
+  });
 
   return (
     <Modal
@@ -123,7 +123,7 @@ export default function EditCoverLetterModal({
           <div className="hover:cursor-pointer hover:text-red-500">
             <i
               onClick={() => {
-                handleModal(false)
+                handleModal(false);
               }}
               className="close icon"
             />
@@ -218,7 +218,7 @@ export default function EditCoverLetterModal({
           {showPopup && (
             <ResumeSubmitPopup
               message={{
-                title: success ? 'Saved' : 'Failed',
+                title: success ? "Saved" : "Failed",
                 content: message,
               }}
               success={success}
@@ -228,5 +228,5 @@ export default function EditCoverLetterModal({
         </Form>
       </Formik>
     </Modal>
-  )
+  );
 }

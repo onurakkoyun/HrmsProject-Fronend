@@ -1,16 +1,16 @@
-import React from 'react'
-import { useEffect } from 'react'
-import { useState } from 'react'
-import { Divider, Label, Modal } from 'semantic-ui-react'
-import { Form, Formik, useFormik } from 'formik'
-import * as Yup from 'yup'
-import { Editor } from '@tinymce/tinymce-react'
-import EducationService from '../services/educationService'
-import { useRef } from 'react'
-import ResumeSubmitPopup from './ResumeSubmitPopup'
-import 'semantic-ui-css/semantic.min.css'
+import React from "react";
+import { useEffect } from "react";
+import { useState } from "react";
+import { Divider, Label, Modal } from "semantic-ui-react";
+import { Form, Formik, useFormik } from "formik";
+import * as Yup from "yup";
+import { Editor } from "@tinymce/tinymce-react";
+import EducationService from "../services/educationService";
+import { useRef } from "react";
+import ResumeSubmitPopup from "./ResumeSubmitPopup";
+import "semantic-ui-css/semantic.min.css";
 
-const educationService = new EducationService()
+const educationService = new EducationService();
 
 export default function EditEducationPopup({
   educationId,
@@ -18,212 +18,212 @@ export default function EditEducationPopup({
   setOpen,
   showPopupCallback,
 }) {
-  const [education, setEducation] = useState({})
-  const [showEndingDate, setShowEndingDate] = useState(true)
-  const [modalOpen, setModalOpen] = useState(false)
-  const [showPopup, setShowPopup] = useState(false)
-  const [message, setMessage] = useState('')
-  const [success, setSuccess] = useState(false)
-  const editorRef = useRef(null)
+  const [education, setEducation] = useState({});
+  const [showEndingDate, setShowEndingDate] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
+  const [message, setMessage] = useState("");
+  const [success, setSuccess] = useState(false);
+  const editorRef = useRef(null);
 
   useEffect(() => {
-    if (educationId !== '' && educationId !== undefined) {
-      loadEducation()
+    if (educationId !== "" && educationId !== undefined) {
+      loadEducation();
     }
-    setModalOpen(open)
-  }, [open])
+    setModalOpen(open);
+  }, [open]);
 
   const loadEducation = async () => {
     try {
-      const result = await educationService.getEducationById(educationId)
-      const resumeData = result.data.data
+      const result = await educationService.getEducationById(educationId);
+      const resumeData = result.data.data;
 
-      formik.setFieldValue('educationId', resumeData.educationId || '')
-      formik.setFieldValue('educationLevel', resumeData.educationLevel || '')
-      formik.setFieldValue('universityName', resumeData.universityName || '')
-      formik.setFieldValue('faculty', resumeData.faculty || '')
-      formik.setFieldValue('department', resumeData.department || '')
-      formik.setFieldValue('cityName', resumeData.cityName || '')
-      formik.setFieldValue('description', resumeData.description || '')
-      formik.setFieldValue('degreeType', resumeData.degreeType || '')
+      formik.setFieldValue("educationId", resumeData.educationId || "");
+      formik.setFieldValue("educationLevel", resumeData.educationLevel || "");
+      formik.setFieldValue("universityName", resumeData.universityName || "");
+      formik.setFieldValue("faculty", resumeData.faculty || "");
+      formik.setFieldValue("department", resumeData.department || "");
+      formik.setFieldValue("cityName", resumeData.cityName || "");
+      formik.setFieldValue("description", resumeData.description || "");
+      formik.setFieldValue("degreeType", resumeData.degreeType || "");
       formik.setFieldValue(
-        'graduationDegree',
-        resumeData.graduationDegree || '',
-      )
-      formik.setFieldValue('educationType', resumeData.educationType || '')
+        "graduationDegree",
+        resumeData.graduationDegree || ""
+      );
+      formik.setFieldValue("educationType", resumeData.educationType || "");
       formik.setFieldValue(
-        'educationLanguage',
-        resumeData.educationLanguage || '',
-      )
-      formik.setFieldValue('startingDate', resumeData.startingDate || '')
-      formik.setFieldValue('endingDate', resumeData.endingDate || '')
-      formik.setFieldValue('continue', resumeData.continue || '')
+        "educationLanguage",
+        resumeData.educationLanguage || ""
+      );
+      formik.setFieldValue("startingDate", resumeData.startingDate || "");
+      formik.setFieldValue("endingDate", resumeData.endingDate || "");
+      formik.setFieldValue("continue", resumeData.continue || "");
       if (resumeData.continue === true) {
-        setShowEndingDate(false)
+        setShowEndingDate(false);
       } else {
-        setShowEndingDate(true)
+        setShowEndingDate(true);
       }
 
-      setEducation(resumeData)
+      setEducation(resumeData);
     } catch (error) {
-      console.error('An error occurred while loading resume data:', error)
+      console.error("An error occurred while loading resume data:", error);
     }
-  }
+  };
 
   const handleModal = (value) => {
     if (!value) {
-      setMessage('')
-      formik.resetForm()
+      setMessage("");
+      formik.resetForm();
     }
-    setModalOpen(value)
-    setOpen(value)
+    setModalOpen(value);
+    setOpen(value);
 
-    formik.setFieldValue('educationLevel', '')
+    formik.setFieldValue("educationLevel", "");
 
-    formik.setFieldValue('universityName', '')
+    formik.setFieldValue("universityName", "");
 
-    formik.setFieldValue('faculty', '')
+    formik.setFieldValue("faculty", "");
 
-    formik.setFieldValue('department', '')
+    formik.setFieldValue("department", "");
 
-    formik.setFieldValue('cityName', '')
+    formik.setFieldValue("cityName", "");
 
-    formik.setFieldValue('description', '')
+    formik.setFieldValue("description", "");
 
-    formik.setFieldValue('degreeType', '')
+    formik.setFieldValue("degreeType", "");
 
-    formik.setFieldValue('graduationDegree', '')
+    formik.setFieldValue("graduationDegree", "");
 
-    formik.setFieldValue('educationType', '')
+    formik.setFieldValue("educationType", "");
 
-    formik.setFieldValue('educationLanguage', '')
+    formik.setFieldValue("educationLanguage", "");
 
-    formik.setFieldValue('startingDate', '')
+    formik.setFieldValue("startingDate", "");
 
-    formik.setFieldValue('endingDate', '')
+    formik.setFieldValue("endingDate", "");
 
-    formik.setFieldValue('continue', false)
-  }
+    formik.setFieldValue("continue", false);
+  };
 
   const handleDismissPopup = () => {
-    setShowPopup(false)
-  }
+    setShowPopup(false);
+  };
 
   const handleChange = (fieldName, value) => {
-    formik.setFieldValue(fieldName, value)
-    if (fieldName === 'continue') {
+    formik.setFieldValue(fieldName, value);
+    if (fieldName === "continue") {
       if (value === true) {
-        formik.setFieldValue('endingDate', '')
+        formik.setFieldValue("endingDate", "");
       }
-      setShowEndingDate(!value)
-      formik.validateForm()
+      setShowEndingDate(!value);
+      formik.validateForm();
     }
-  }
+  };
 
   const validationSchema = Yup.object({
-    educationLevel: Yup.string().required('Required Field'),
-    universityName: Yup.string().required('Required Field'),
-    faculty: Yup.string().required('Required Field'),
-    department: Yup.string().required('Required Field'),
-    cityName: Yup.string().required('Required Field'),
-    description: Yup.string().required('Required Field'),
-    degreeType: Yup.string().when('continue', {
+    educationLevel: Yup.string().required("Required Field"),
+    universityName: Yup.string().required("Required Field"),
+    faculty: Yup.string().required("Required Field"),
+    department: Yup.string().required("Required Field"),
+    cityName: Yup.string().required("Required Field"),
+    description: Yup.string().required("Required Field"),
+    degreeType: Yup.string().when("continue", {
       is: false,
       then: () =>
         Yup.number()
-          .required('Required Field')
-          .oneOf([4, 5, 10, 100], 'Invalid Degree Type'),
+          .required("Required Field")
+          .oneOf([4, 5, 10, 100], "Invalid Degree Type"),
     }),
     graduationDegree: Yup.number()
-      .when('continue', {
+      .when("continue", {
         is: false,
         then: () =>
           Yup.number()
-            .positive('Must be a positive number')
-            .required('Required Field'),
+            .positive("Must be a positive number")
+            .required("Required Field"),
       })
-      .when('degreeType', {
+      .when("degreeType", {
         is: 4,
         then: () =>
           Yup.number()
-            .max(4, 'Maximum graduation degree is 4')
-            .positive('Must be a positive number')
-            .required('Required Field'),
+            .max(4, "Maximum graduation degree is 4")
+            .positive("Must be a positive number")
+            .required("Required Field"),
       })
-      .when('degreeType', {
+      .when("degreeType", {
         is: 5,
         then: () =>
           Yup.number()
-            .max(5, 'Maximum graduation degree is 5')
-            .positive('Must be a positive number')
-            .required('Required Field'),
+            .max(5, "Maximum graduation degree is 5")
+            .positive("Must be a positive number")
+            .required("Required Field"),
       })
-      .when('degreeType', {
+      .when("degreeType", {
         is: 10,
         then: () =>
           Yup.number()
-            .max(10, 'Maximum graduation degree is 10')
-            .positive('Must be a positive number')
-            .required('Required Field'),
+            .max(10, "Maximum graduation degree is 10")
+            .positive("Must be a positive number")
+            .required("Required Field"),
       })
-      .when('degreeType', {
+      .when("degreeType", {
         is: 100,
         then: () =>
           Yup.number()
-            .max(100, 'Maximum graduation degree is 100')
-            .positive('Must be a positive number')
-            .required('Required Field'),
+            .max(100, "Maximum graduation degree is 100")
+            .positive("Must be a positive number")
+            .required("Required Field"),
       }),
-    educationType: Yup.string().required('Required Field'),
-    educationLanguage: Yup.string().required('Required Field'),
+    educationType: Yup.string().required("Required Field"),
+    educationLanguage: Yup.string().required("Required Field"),
     continue: Yup.boolean(),
     startingDate: Yup.date()
-      .max(new Date(), 'Starting date must be in the past')
-      .required('Required Field'),
+      .max(new Date(), "Starting date must be in the past")
+      .required("Required Field"),
     endingDate: Yup.date()
-      .min(Yup.ref('startingDate'), 'Ending date must be after starting date')
-      .when('continue', {
+      .min(Yup.ref("startingDate"), "Ending date must be after starting date")
+      .when("continue", {
         is: false,
         then: () =>
           Yup.date()
-            .required('Required Field')
+            .required("Required Field")
             .min(
-              Yup.ref('startingDate'),
-              'Ending date must be after starting date',
+              Yup.ref("startingDate"),
+              "Ending date must be after starting date"
             ),
       }),
-  })
+  });
 
   const initialValues = {
     educationId: educationId,
-    educationLevel: '',
-    universityName: '',
-    faculty: '',
-    department: '',
-    cityName: '',
-    description: '',
-    degreeType: '',
-    graduationDegree: '',
-    educationType: '',
-    educationLanguage: '',
-    startingDate: '',
-    endingDate: '',
+    educationLevel: "",
+    universityName: "",
+    faculty: "",
+    department: "",
+    cityName: "",
+    description: "",
+    degreeType: "",
+    graduationDegree: "",
+    educationType: "",
+    educationLanguage: "",
+    startingDate: "",
+    endingDate: "",
     continue: false,
-  }
+  };
 
   const onSubmit = async (values, { resetForm }) => {
-    setMessage('')
-    setSuccess(false)
+    setMessage("");
+    setSuccess(false);
     educationService.updateEducation(values).then(
       (response) => {
-        setSuccess(response.data.success)
-        setMessage(response.data.message)
-        setShowPopup(true)
-        setShowEndingDate(true)
+        setSuccess(response.data.success);
+        setMessage(response.data.message);
+        setShowPopup(true);
+        setShowEndingDate(true);
         setTimeout(() => {
-          showPopupCallback()
-          resetForm()
-        }, 100)
+          showPopupCallback();
+          resetForm();
+        }, 100);
       },
       (error) => {
         const resMessage =
@@ -231,19 +231,19 @@ export default function EditEducationPopup({
             error.response.data &&
             error.response.data.message) ||
           error.message ||
-          error.toString()
+          error.toString();
 
-        setMessage(resMessage)
-        setSuccess(false)
-      },
-    )
-  }
+        setMessage(resMessage);
+        setSuccess(false);
+      }
+    );
+  };
 
   const formik = useFormik({
     initialValues: initialValues,
     validationSchema: validationSchema,
     onSubmit: onSubmit,
-  })
+  });
 
   return (
     <div>
@@ -260,7 +260,7 @@ export default function EditEducationPopup({
             <div className="hover:cursor-pointer hover:text-red-500">
               <i
                 onClick={() => {
-                  handleModal(false)
+                  handleModal(false);
                 }}
                 className="close icon"
               />
@@ -278,17 +278,20 @@ export default function EditEducationPopup({
                       className="font-poppins font-medium text-md text-gray-800"
                       htmlFor="educationLevel"
                     >
-                      <span>Education Level</span>
+                      <span>
+                        Education Level&nbsp;
+                        <span className="text-red-500 select-none">*</span>
+                      </span>
                     </label>
                     <select
                       name="educationLevel"
                       onChange={(event) =>
-                        handleChange('educationLevel', event.target.value)
+                        handleChange("educationLevel", event.target.value)
                       }
-                      value={formik.values.educationLevel || ''}
+                      value={formik.values.educationLevel || ""}
                       className="w-[432px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shadow-sm"
                     >
-                      <option value="">Education level</option>
+                      <option value="">Select a education level...</option>
                       <option value="Bachelor">Bachelor</option>
                       <option value="Associate Degree">Associate Degree</option>
                       <option value="Master">Master</option>
@@ -317,18 +320,21 @@ export default function EditEducationPopup({
                         className="font-poppins font-medium text-md text-gray-800"
                         htmlFor="educationType"
                       >
-                        <span>Education Type</span>
+                        <span>
+                          Education Type&nbsp;
+                          <span className="text-red-500 select-none">*</span>
+                        </span>
                       </label>
 
                       <select
                         name="educationType"
                         onChange={(event) =>
-                          handleChange('educationType', event.target.value)
+                          handleChange("educationType", event.target.value)
                         }
-                        value={formik.values.educationType || ''}
+                        value={formik.values.educationType || ""}
                         className="w-[212px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shadow-sm"
                       >
-                        <option value="">Education Type</option>
+                        <option value="">Select a education type...</option>
                         <option value="Evening Education">
                           Evening Education
                         </option>
@@ -362,14 +368,17 @@ export default function EditEducationPopup({
                         className="font-poppins font-medium text-md text-gray-800"
                         htmlFor="educationLanguage"
                       >
-                        <span>Education Language</span>
+                        <span>
+                          Education Language&nbsp;
+                          <span className="text-red-500 select-none">*</span>
+                        </span>
                       </label>
                       <select
                         name="educationLanguage"
                         onChange={(event) =>
-                          handleChange('educationLanguage', event.target.value)
+                          handleChange("educationLanguage", event.target.value)
                         }
-                        value={formik.values.educationLanguage || ''}
+                        value={formik.values.educationLanguage || ""}
                         className="w-[212px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shadow-sm"
                       >
                         <option value="">Select a language...</option>
@@ -400,7 +409,10 @@ export default function EditEducationPopup({
                         className="font-poppins font-medium text-md text-gray-800"
                         htmlFor="startingDate"
                       >
-                        <span>Starting Date</span>
+                        <span>
+                          Starting Date&nbsp;
+                          <span className="text-red-500 select-none">*</span>
+                        </span>
                       </label>
 
                       <input
@@ -408,7 +420,7 @@ export default function EditEducationPopup({
                         type="date"
                         className="w-[212px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shafow-sm"
                         onChange={(event) =>
-                          handleChange('startingDate', event.target.value)
+                          handleChange("startingDate", event.target.value)
                         }
                         value={formik.values.startingDate}
                       />
@@ -435,7 +447,10 @@ export default function EditEducationPopup({
                           className="font-poppins font-medium text-md text-gray-800"
                           htmlFor="endingDate"
                         >
-                          <span>Ending Date</span>
+                          <span>
+                            Ending Date&nbsp;
+                            <span className="text-red-500 select-none">*</span>
+                          </span>
                         </label>
 
                         <input
@@ -443,7 +458,7 @@ export default function EditEducationPopup({
                           type="date"
                           className="w-[212px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shafow-sm"
                           onChange={(event) =>
-                            handleChange('endingDate', event.target.value)
+                            handleChange("endingDate", event.target.value)
                           }
                           value={formik.values.endingDate}
                         />
@@ -467,7 +482,7 @@ export default function EditEducationPopup({
 
                   <div
                     className={`flex flex-col ${
-                      showEndingDate ? '' : 'ml-[136px]'
+                      showEndingDate ? "" : "ml-[136px]"
                     }`}
                   >
                     <label
@@ -481,7 +496,7 @@ export default function EditEducationPopup({
                       type="checkbox"
                       className="rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shafow-sm"
                       onChange={(event) =>
-                        handleChange('continue', event.target.checked)
+                        handleChange("continue", event.target.checked)
                       }
                       checked={formik.values.continue}
                     />
@@ -509,18 +524,21 @@ export default function EditEducationPopup({
                           className="font-poppins font-medium text-md text-gray-800"
                           htmlFor="degreeType"
                         >
-                          <span>Degree Type</span>
+                          <span>
+                            Degree Type&nbsp;
+                            <span className="text-red-500 select-none">*</span>
+                          </span>
                         </label>
 
                         <select
                           name="degreeType"
                           onChange={(event) =>
-                            handleChange('degreeType', event.target.value)
+                            handleChange("degreeType", event.target.value)
                           }
-                          value={formik.values.degreeType || ''}
+                          value={formik.values.degreeType || ""}
                           className="w-[212px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shadow-sm"
                         >
-                          <option value="">Degree Type</option>
+                          <option value="">Select a degree type...</option>
                           <option value="4">4</option>
                           <option value="5">5</option>
                           <option value="10">10</option>
@@ -548,7 +566,10 @@ export default function EditEducationPopup({
                           className="font-poppins font-medium text-md text-gray-800"
                           htmlFor="graduationDegree"
                         >
-                          <span>Graduation Degree</span>
+                          <span>
+                            Graduation Degree&nbsp;
+                            <span className="text-red-500 select-none">*</span>
+                          </span>
                         </label>
 
                         <input
@@ -557,7 +578,7 @@ export default function EditEducationPopup({
                           className="w-[212px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shafow-sm"
                           placeholder="Enter graduation degree"
                           onChange={(event) =>
-                            handleChange('graduationDegree', event.target.value)
+                            handleChange("graduationDegree", event.target.value)
                           }
                           value={formik.values.graduationDegree}
                         />
@@ -586,7 +607,10 @@ export default function EditEducationPopup({
                         className="font-poppins font-medium text-md text-gray-800"
                         htmlFor="universityName"
                       >
-                        <span>University</span>
+                        <span>
+                          University&nbsp;
+                          <span className="text-red-500 select-none">*</span>
+                        </span>
                       </label>
 
                       <input
@@ -595,7 +619,7 @@ export default function EditEducationPopup({
                         className="w-[212px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shafow-sm"
                         placeholder="Enter a university name"
                         onChange={(event) =>
-                          handleChange('universityName', event.target.value)
+                          handleChange("universityName", event.target.value)
                         }
                         value={formik.values.universityName}
                       />
@@ -621,7 +645,10 @@ export default function EditEducationPopup({
                         className="font-poppins font-medium text-md text-gray-800"
                         htmlFor="faculty"
                       >
-                        <span>Faculty</span>
+                        <span>
+                          Faculty&nbsp;
+                          <span className="text-red-500 select-none">*</span>
+                        </span>
                       </label>
 
                       <input
@@ -630,7 +657,7 @@ export default function EditEducationPopup({
                         className="w-[212px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shafow-sm"
                         placeholder="Enter a faculty"
                         onChange={(event) =>
-                          handleChange('faculty', event.target.value)
+                          handleChange("faculty", event.target.value)
                         }
                         value={formik.values.faculty}
                       />
@@ -655,7 +682,10 @@ export default function EditEducationPopup({
                         className="font-poppins font-medium text-md text-gray-800"
                         htmlFor="department"
                       >
-                        <span>Department</span>
+                        <span>
+                          Department&nbsp;
+                          <span className="text-red-500 select-none">*</span>
+                        </span>
                       </label>
 
                       <input
@@ -664,7 +694,7 @@ export default function EditEducationPopup({
                         className="w-[212px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shafow-sm"
                         placeholder="Enter a department"
                         onChange={(event) =>
-                          handleChange('department', event.target.value)
+                          handleChange("department", event.target.value)
                         }
                         value={formik.values.department}
                       />
@@ -690,7 +720,10 @@ export default function EditEducationPopup({
                         className="font-poppins font-medium text-md text-gray-800"
                         htmlFor="cityName"
                       >
-                        <span>City</span>
+                        <span>
+                          City&nbsp;
+                          <span className="text-red-500 select-none">*</span>
+                        </span>
                       </label>
 
                       <input
@@ -699,7 +732,7 @@ export default function EditEducationPopup({
                         className="w-[212px] mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shafow-sm"
                         placeholder="Enter a city"
                         onChange={(event) =>
-                          handleChange('cityName', event.target.value)
+                          handleChange("cityName", event.target.value)
                         }
                         value={formik.values.cityName}
                       />
@@ -725,7 +758,10 @@ export default function EditEducationPopup({
                       className="font-poppins font-medium text-md text-gray-800 ml-0.5 mb-1"
                       htmlFor="description"
                     >
-                      Description:
+                      <span>
+                        Description&nbsp;
+                        <span className="text-red-500 select-none">*</span>
+                      </span>
                     </div>
                     <div className="w-[872px]">
                       <Editor
@@ -736,17 +772,17 @@ export default function EditEducationPopup({
                         init={{
                           menubar: true,
                           plugins: [
-                            'advlist autolink lists link image charmap print preview anchor',
-                            'searchreplace visualblocks code fullscreen',
-                            'insertdatetime media table paste code help wordcount',
+                            "advlist autolink lists link image charmap print preview anchor",
+                            "searchreplace visualblocks code fullscreen",
+                            "insertdatetime media table paste code help wordcount",
                           ],
                           toolbar:
-                            'undo redo | formatselect | bold italic backcolor | \
+                            "undo redo | formatselect | bold italic backcolor | \
                         aligncenter alignright alignjustify | \
-                        bullist numlist outdent indent | removeformat | help',
+                        bullist numlist outdent indent | removeformat | help",
                         }}
                         onEditorChange={(content) =>
-                          formik.setFieldValue('description', content)
+                          formik.setFieldValue("description", content)
                         }
                         value={formik.values.description}
                       />
@@ -778,7 +814,7 @@ export default function EditEducationPopup({
                 type="cancel"
                 className="inline-block rounded mr-2 px-3 py-2 text-medium font-medium text-white hover:bg-shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-400 bg-red-600 hover:bg-red-800"
                 onClick={() => {
-                  handleModal(false)
+                  handleModal(false);
                 }}
               >
                 Cancel
@@ -793,7 +829,7 @@ export default function EditEducationPopup({
             {showPopup && (
               <ResumeSubmitPopup
                 message={{
-                  title: success ? 'Edit saved' : 'Edit failed',
+                  title: success ? "Edit saved" : "Edit failed",
                   content: message,
                 }}
                 success={success}
@@ -804,5 +840,5 @@ export default function EditEducationPopup({
         </Formik>
       </Modal>
     </div>
-  )
+  );
 }

@@ -6,6 +6,7 @@ import { Form } from "semantic-ui-react";
 import ContentTitle from "../components/ContentTitle";
 import defaultProfilePhoto from "../images/default-profile.svg.png";
 import UserService from "../services/userService";
+import { Link } from "react-router-dom";
 
 const userService = new UserService();
 const jobPostingService = new JobPostingService();
@@ -233,10 +234,10 @@ export default function JobPostingsList() {
                 .map((jobPosting) => (
                   <li
                     key={jobPosting.jobPostingId}
-                    className="px-4 py-5 duration-150 border rounded-xl shadow-sm hover:border-white hover:rounded-xl hover:bg-gray-50"
+                    className="px-4 py-5 duration-150 border rounded-xl shadow-md shadow-blue-50 hover:border-white hover:rounded-xl hover:shadow-blue-100 hover:shadow-lg"
                   >
-                    <a
-                      href={`/jobPosting/${jobPosting.jobPostingId}`}
+                    <Link
+                      to={`/jobPosting/${jobPosting.jobPostingId}`}
                       className="space-y-3"
                     >
                       <div>
@@ -327,7 +328,7 @@ export default function JobPostingsList() {
                           </div>
                         </div>
                       </div>
-                    </a>
+                    </Link>
                   </li>
                 ))}
             </ul>
