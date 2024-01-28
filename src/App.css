@@ -1,6 +1,6 @@
 @import url(https://fonts.googleapis.com/css2?family=Limelight&display=swap); /* montserrat */
 @import url(https://use.typekit.net/ffv5tjj.css); /* orbitron, shuriken-std */
-@import url("https://fonts.googleapis.com/css2?family=Arvo:wght@400;700&family=DM+Serif+Display&family=EB+Garamond:wght@500;600&family=Gabarito:wght@400;500&family=Lato:wght@700&family=Lobster&family=Merriweather&family=Montserrat:wght@400;500&family=Mulish:wght@300;400;500;700;900;1000&family=Noto+Sans:wght@300;400&family=Nova+Square&family=Open+Sans:wght@400;500&family=PT+Sans&family=Poppins:wght@200;300;400;600;800;900&family=Roboto+Slab:wght@300;400;500&family=Roboto:wght@400;500&family=Ubuntu:wght@300&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Arvo:wght@400;700&family=DM+Serif+Display&family=EB+Garamond:wght@500;600&family=Gabarito:wght@400;500&family=Inter:wght@400;500;600;700;800&family=Lato:wght@700&family=Lobster&family=Merriweather&family=Montserrat:wght@400;500&family=Mulish:wght@300;400;500;700;900;1000&family=Noto+Sans:wght@300;400&family=Nova+Square&family=Open+Sans:wght@400;500&family=PT+Sans&family=Poppins:wght@200;300;400;600;800;900&family=Roboto+Slab:wght@300;400;500&family=Roboto:wght@400;500&family=Ubuntu:wght@300&display=swap");
 @import url("https://fonts.cdnfonts.com/css/itc-serif-gothic-2?styles=97307");
 
 .App {
@@ -16,6 +16,19 @@
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
   }
+}
+
+@keyframes moveLine {
+  0% {
+    width: 0;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+.animate-line {
+  animation: moveLine 1s ease-out; /* İstediğiniz animasyon süresini ve geçiş türünü ayarlayabilirsiniz */
 }
 
 .App-header {

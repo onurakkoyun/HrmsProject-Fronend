@@ -137,11 +137,11 @@ export default function EmployerJobPostingsList() {
                 <th className="px-3 py-2">Title</th>
                 <th className="px-3 py-2">City</th>
                 <th className="px-3 py-2">Job Type</th>
-                <th className="px-3 py-2">Status</th>
+                <th className="px-3 py-2 text-center">Status</th>
                 <th className="px-3 py-2">Release at</th>
                 <th className="px-3 py-2">Applications</th>
                 <th className="px-3 py-2">Deadline</th>
-                <th className="px-3 py-2"></th>
+                <th className="px-3 py-2">Actions</th>
               </tr>
             </thead>
             <tbody className="text-[14px] font-medium divide-y">
@@ -151,7 +151,12 @@ export default function EmployerJobPostingsList() {
                   key={idx}
                 >
                   <td className="px-3 py-2 whitespace-nowrap">
-                    {jobPosting.jobTitle?.jobTitleName}
+                    <a
+                      href={`/jobPosting/${jobPosting.jobPostingId}`}
+                      className="text-blue-600 hover:text-blue-500"
+                    >
+                      {jobPosting.jobTitle.jobTitleName}
+                    </a>
                   </td>
                   <td className="px-3 py-2 whitespace-nowrap">
                     {jobPosting.city?.cityName}
@@ -159,9 +164,9 @@ export default function EmployerJobPostingsList() {
                   <td className="px-3 py-2 whitespace-nowrap">
                     {jobPosting.workingType?.typeName}
                   </td>
-                  <td className="px-3 py-2 whitespace-nowrap">
+                  <td className="px-3 py-2 whitespace-nowrap text-center">
                     <span
-                      className={`inline-flex items-center rounded-md px-[7px] py-[3px] font-bold text-sm ${
+                      className={`inline-flex items-center rounded-full px-[7px] py-[3px] font-bold text-sm ${
                         jobPosting.active === true
                           ? "text-green-600 bg-green-50/60 ring-1 ring-green-600/30 tracking-wide"
                           : "text-red-700 bg-red-50/60 ring-1 ring-red-900/20 tracking-wide"
@@ -274,6 +279,7 @@ export default function EmployerJobPostingsList() {
                                       : "text-gray-700",
                                     "block rounded-lg px-2 py-1 text-sm text-gray-500 hover:cursor-pointer hover:bg-gray-50 hover:text-gray-700"
                                   )}
+                                  to={`/employer/${currentUser.id}/jobPosting/${jobPosting.jobPostingId}/edit`}
                                 >
                                   <div className="flex">
                                     <span>

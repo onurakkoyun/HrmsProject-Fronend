@@ -127,7 +127,7 @@ export default function JobPostingDetail() {
                         </div>
                         {!jobPosting.active && (
                           <div className="font-bold text-red-500">
-                            Passive Post
+                            Passive post
                           </div>
                         )}
                       </div>
@@ -163,7 +163,9 @@ export default function JobPostingDetail() {
                                 aria-hidden="true"
                               />
                               <span className="text-gray-900">
+                                {jobPosting.salaryCurrency}
                                 {jobPosting.salaryMin} &ndash;&nbsp;
+                                {jobPosting.salaryCurrency}
                                 {jobPosting.salaryMax}
                               </span>
                             </div>
@@ -273,19 +275,21 @@ export default function JobPostingDetail() {
                           __html: jobPosting.jobDescription,
                         }}
                       />
-                      <div className="text-right mt-6">
-                        <div>
-                          <button
-                            type="submit"
-                            className="px-5 py-2 font-bold rounded-full text-white transition ease-in-out delay-0 bg-[#5a2bdb] hover:-translate-y-0 hover:scale-110 hover:bg-opacity-90 duration-300"
-                            onClick={() => {
-                              handleApplyClick();
-                            }}
-                          >
-                            Apply
-                          </button>
+                      {jobPosting.active && (
+                        <div className="text-right mt-6">
+                          <div>
+                            <button
+                              type="submit"
+                              className="px-5 py-2 font-bold rounded-full text-white transition ease-in-out delay-0 bg-[#5a2bdb] hover:-translate-y-0 hover:scale-110 hover:bg-opacity-90 duration-300"
+                              onClick={() => {
+                                handleApplyClick();
+                              }}
+                            >
+                              Apply
+                            </button>
+                          </div>
                         </div>
-                      </div>
+                      )}
                       {showApplyPopup && (
                         <ApplyPopup
                           jobPostingId={id}

@@ -4,10 +4,9 @@ import { useState } from "react";
 import { Form, Formik, useFormik } from "formik";
 import * as Yup from "yup";
 import { Divider, Label, Modal } from "semantic-ui-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import ResumeService from "../services/resumeService";
 import ResumeSubmitPopup from "./ResumeSubmitPopup";
-import { useSelector } from "react-redux";
 
 const resumeService = new ResumeService();
 

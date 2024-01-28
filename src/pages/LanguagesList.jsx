@@ -62,7 +62,7 @@ export default function LanguagesList({ resumeId }) {
   return (
     <div>
       <div className="mt-3 mx-auto md:mx-auto lg:px-[256px]">
-        <section className="rounded-lg  tracking-wide bg-white sm:p-2 md:p-4 lg:p-8 shadow-xl hover:border-dashed border-2 hover:border-gray-500 justify-items-center mt-3 max-w-screen-full mx-auto px-4 md:px-8 sm:px-4">
+        <section className="rounded-lg tracking-wide bg-white sm:p-2 md:p-4 lg:p-8 shadow-xl hover:border-dashed border-2 hover:border-gray-500 justify-items-center mt-3 max-w-screen-full mx-auto px-4 md:px-8 sm:px-4">
           <div>
             <h3 className="text-left font-mulish font-semibold">
               Foreign Languages

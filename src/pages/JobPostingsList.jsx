@@ -1,445 +1,661 @@
-import React, { useState, useEffect } from "react";
-import JobPostingService from "./../services/jobPostingService";
-import JobTitleService from "./../services/jobTitleService";
-import CityService from "./../services/cityService";
-import { Form } from "semantic-ui-react";
-import ContentTitle from "../components/ContentTitle";
-import defaultProfilePhoto from "../images/default-profile.svg.png";
-import UserService from "../services/userService";
-import { Link } from "react-router-dom";
+import { Fragment, useEffect, useState } from "react";
+import { Dialog, Menu, Transition } from "@headlessui/react";
+import { XMarkIcon } from "@heroicons/react/24/outline";
+import { ChevronDownIcon, FunnelIcon } from "@heroicons/react/20/solid";
+import WorkingTypeService from "../services/workingTypeService";
+import JobTitleService from "../services/jobTitleService";
+import CityService from "../services/cityService";
+import JobPostingCard from "../components/JobPostingCard";
+import SelectedFilterBadge from "../components/SelectedFilterBadge";
 
-const userService = new UserService();
-const jobPostingService = new JobPostingService();
-const jobTitleService = new JobTitleService();
+const sortOptions = [
+  { name: "Newest", value: "newest" },
+  { name: "Oldest", value: "oldest" },
+];
+
+function classNames(...classes) {
+  return classes.filter(Boolean).join(" ");
+}
+
+let cityService = new CityService();
+let jobTitleService = new JobTitleService();
+let workingTypeService = new WorkingTypeService();
 
 export default function JobPostingsList() {
-  const [jobPostings, setJobPostings] = useState([]);
-  const [jobTitles, setJobTitles] = useState([]); // Renamed state to jobTitles
-  const [titleId, setTitleId] = useState("");
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [cities, setCities] = useState([]);
-  const [cityId, setCityId] = useState("");
-  const [filtered, setFiltered] = useState(false);
-  const [favoriteButtonClick, setFavoriteButtonClick] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
-
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const [jobTitles, setJobTitles] = useState([]);
+  const [workingTypes, setWorkingTypes] = useState([]);
+  const [citySearch, setCitySearch] = useState("");
+  const [titleSearch, setTitleSearch] = useState("");
+  const [typeSearch, setTypeSearch] = useState("");
+  const [selectedCities, setSelectedCities] = useState([]);
+  const [selectedJobTitles, setSelectedJobTitles] = useState([]);
+  const [selectedWorkingTypes, setSelectedWorkingTypes] = useState([]);
+  const [sortOption, setSortOption] = useState("newest");
 
   useEffect(() => {
-    const fetchData = async () => {
-      const jobPostingsResult = await jobPostingService.getJobPostings();
-      const jobTitlesResult = await jobTitleService.getJobTitles();
-      const citiesResult = await new CityService().getCities();
+    cityService.getCities().then((result) => setCities(result.data.data));
 
-      const sortedJobPostings = jobPostingsResult.data.data.sort((a, b) => {
-        const dateA = new Date(a.publicationDate);
-        const dateB = new Date(b.publicationDate);
-        return dateB - dateA;
-      });
+    jobTitleService
+      .getJobTitles()
+      .then((result) => setJobTitles(result.data.data));
 
-      // Apply filter for expired application deadlines
-      const filteredJobPostings = sortedJobPostings.filter((jobPosting) => {
-        const applicationDeadline = new Date(jobPosting.applicationDeadline);
-        const today = new Date();
-        return applicationDeadline >= today; // Include only job postings with future application deadlines
-      });
-
-      setJobPostings(filteredJobPostings);
-      setJobTitles(jobTitlesResult.data.data);
-      setCities(citiesResult.data.data);
-    };
-
-    fetchData();
+    workingTypeService
+      .getWorkingTypes()
+      .then((result) => setWorkingTypes(result.data.data));
   }, []);
 
-  useEffect(() => {
-    const fetchAppliedJobs = async () => {
-      try {
-        // Kullanıcılardan alınan ID'leri bir diziye topla
-        const employerIds = jobPostings.map(
-          (jobPosting) => jobPosting?.employer.id
-        );
-
-        // Toplu istek ile profil fotoğraflarını al
-        const userPhotoResponses = await Promise.all(
-          employerIds.map((employerId) =>
-            userService.getUserPhotoById(employerId)
-          )
-        );
-
-        // Her fotoğraf için URL oluştur ve iş ilanlarına ekleyerek set işlemini gerçekleştir
-        const jobsWithPhotos = jobPostings.map((jobPosting, index) => {
-          const userPhotoResponse = userPhotoResponses[index];
-
-          if (userPhotoResponse.status === 200) {
-            const imageBlob = userPhotoResponse.data;
-            const imageUrl = URL.createObjectURL(imageBlob);
-            return {
-              ...jobPosting,
-              profilePhoto: imageUrl,
-            };
-          }
-
-          return jobPosting;
-        });
-
-        setJobPostings(jobsWithPhotos);
-      } catch (error) {
-        console.error("An error occurred while retrieving jobs", error);
-      }
-    };
-
-    // Yalnızca jobPostings değiştiğinde fetchAppliedJobs'i çağır
-    if (jobPostings.length > 0) {
-      fetchAppliedJobs();
-    }
-  }, [jobPostings]);
-
-  const handleFiltered = () => {
-    setFiltered(true);
+  const handleCityChange = (cityName) => {
+    setSelectedCities((prevCities) =>
+      prevCities.includes(cityName)
+        ? prevCities.filter((city) => city !== cityName)
+        : [...prevCities, cityName]
+    );
   };
 
-  const handleFavoriteButtonClick = () => {
-    setFavoriteButtonClick(!favoriteButtonClick);
+  const handleJobTitleChange = (jobTitleName) => {
+    setSelectedJobTitles((prevTitles) =>
+      prevTitles.includes(jobTitleName)
+        ? prevTitles.filter((title) => title !== jobTitleName)
+        : [...prevTitles, jobTitleName]
+    );
   };
 
-  const currentJobPostings = jobPostings.filter((jobPosting) => {
-    if (!filtered) {
-      return true;
-    }
-
-    // Filter by selected job title (if a job title is selected)
-    if (titleId && jobPosting.jobTitle?.titleId !== titleId) {
-      return false;
-    }
-
-    // Filter by selected city (if a city is selected)
-    if (cityId && jobPosting.city?.cityId !== cityId) {
-      return false;
-    }
-
-    // If no filters are applied or the job posting matches all filters, include it
-    return true;
-  });
-
-  const pageCount = Math.ceil(currentJobPostings.length / itemsPerPage);
-
-  const goToPage = (page) => {
-    setCurrentPage(page);
+  const handleWorkingTypeChange = (typeName) => {
+    setSelectedWorkingTypes((prevWorkingTypes) =>
+      prevWorkingTypes.includes(typeName)
+        ? prevWorkingTypes.filter((workingType) => workingType !== typeName)
+        : [...prevWorkingTypes, typeName]
+    );
   };
 
-  const goToNextPage = () => {
-    if (currentPage < pageCount) {
-      setCurrentPage(currentPage + 1);
-    }
+  const handleClearFilters = (e) => {
+    e.preventDefault(); // Add this line to prevent the default form submission behavior
+    setSelectedCities([]);
+    setSelectedJobTitles([]);
+    setSelectedWorkingTypes([]);
   };
 
-  const goToPreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
+  const handleSortOptions = (value) => {
+    setSortOption(value);
   };
-
-  const onChangeTitleId = (e, data) => {
-    const titleId = data.value;
-    setTitleId(titleId);
-    setFiltered(false);
-  };
-
-  const onChangeCityId = (e, data) => {
-    const cityId = data.value;
-    setCityId(cityId);
-    setFiltered(false);
-  };
-
-  const jobTitleOptions = jobTitles.map((jobTitle) => {
-    return {
-      key: jobTitle.titleId,
-      value: jobTitle.titleId,
-      text: jobTitle.jobTitleName,
-    };
-  });
-
-  const cityOptions = cities.map((city) => {
-    return {
-      key: city.cityId,
-      value: city.cityId,
-      text: city.cityName,
-    };
-  });
 
   return (
-    <div className="container">
-      <ContentTitle content="List of Job Postings" />
-      <div className="ml-9.5 text-left">
-        <div className="ui breadcrumb">
-          <a className="section" href="/">
-            Home
-          </a>
-          <i className="right chevron icon divider"></i>
-          <a className="section" href="/jobPostings/listall">
-            Find Jobs
-          </a>
-        </div>
-      </div>
-      <div className="flex">
-        <div className="flex-initial w-12 h-12 mt-8 ml-9.5">
-          <Form>
-            <Form.Select
-              name="titleId"
-              className="left-aligned-label"
-              label="Title"
-              placeholder="Please select a title"
-              options={jobTitleOptions}
-              onChange={onChangeTitleId}
-              value={titleId}
-              scrolling
-              selection
-              clearable
-              search
-            />
-
-            <Form.Select
-              name="cityId"
-              className="left-aligned-label"
-              label="City"
-              placeholder="Please select a city"
-              options={cityOptions}
-              onChange={onChangeCityId}
-              value={cityId}
-              scrolling
-              selection
-              clearable
-              search
-            />
-            <button
-              className="px-4 py-2 w-[256px] text-white font-['Oswald'] font-semibold duration-150 bg-[#FF0000] rounded-full hover:bg-red-500"
-              onClick={handleFiltered}
+    <div className="bg-gray-50 mt-7">
+      <div>
+        {/* Mobile filter dialog */}
+        <Transition.Root show={mobileFiltersOpen} as={Fragment}>
+          <Dialog
+            as="div"
+            className="relative z-40 lg:hidden"
+            onClose={setMobileFiltersOpen}
+          >
+            <Transition.Child
+              as={Fragment}
+              enter="transition-opacity ease-linear duration-300"
+              enterFrom="opacity-0"
+              enterTo="opacity-100"
+              leave="transition-opacity ease-linear duration-300"
+              leaveFrom="opacity-100"
+              leaveTo="opacity-0"
             >
-              Filter
-            </button>
-          </Form>
-        </div>
-        <div className="flex-initial w-14 h-14">
-          <section className="mt-5 max-w-screen-lg mx-auto px-4 md:px-8 sm:px-4">
-            <div>
-              <h1 className="text-left text-3xl font-semibold">
-                Explore The Jobs
-              </h1>
-            </div>
-            <ul className="mt-5 divide-y space-y-3">
-              {currentJobPostings
-                .slice(indexOfFirstItem, indexOfLastItem)
-                .map((jobPosting) => (
-                  <li
-                    key={jobPosting.jobPostingId}
-                    className="px-4 py-5 duration-150 border rounded-xl shadow-md shadow-blue-50 hover:border-white hover:rounded-xl hover:shadow-blue-100 hover:shadow-lg"
-                  >
-                    <Link
-                      to={`/jobPosting/${jobPosting.jobPostingId}`}
-                      className="space-y-3"
-                    >
-                      <div>
-                        <div className="justify-between sm:flex">
-                          <div className="bg-white w-6 h-6 mr-2 border rounded-xl flex items-center justify-center">
-                            <div>
-                              {jobPosting.profilePhoto ? (
-                                <img
-                                  className="w-5 h-5 rounded-lg object-cover"
-                                  src={jobPosting.profilePhoto}
-                                  alt="Profile"
-                                />
-                              ) : (
-                                <img
-                                  className="w-5 h-5 rounded-lg object-cover"
-                                  src={defaultProfilePhoto}
-                                  alt="Profile"
-                                />
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex-1">
-                            <div className="font-mulish text-black text-left text-xl font-bold">
-                              {jobPosting.jobTitle?.jobTitleName}
-                            </div>
-                            <span className="block text-left text-sm text-blue-500 font-bold">
-                              {jobPosting.employer?.companyName}
-                            </span>
-                            <p className="font-mulish text-left text-gray-700 mt-2 pr-2">
-                              {jobPosting.jobSummary}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="justify-between space-y-4 text-sm sm:flex sm:space-x-4 sm:space-y-0">
-                          <div className="flex mt-4">
-                            <div className="mr-2 font-mulish flex items-center text-gray-800">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 24 24"
-                                fill="currentColor"
-                                className="w-3 h-3 mr-1"
-                              >
-                                <path
-                                  fillRule="evenodd"
-                                  d="M7.5 5.25a3 3 0 013-3h3a3 3 0 013 3v.205c.933.085 1.857.197 2.774.334 1.454.218 2.476 1.483 2.476 2.917v3.033c0 1.211-.734 2.352-1.936 2.752A24.726 24.726 0 0112 15.75c-2.73 0-5.357-.442-7.814-1.259-1.202-.4-1.936-1.541-1.936-2.752V8.706c0-1.434 1.022-2.7 2.476-2.917A48.814 48.814 0 017.5 5.455V5.25zm7.5 0v.09a49.488 49.488 0 00-6 0v-.09a1.5 1.5 0 011.5-1.5h3a1.5 1.5 0 011.5 1.5zm-3 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z"
-                                  clipRule="evenodd"
-                                />
-                                <path d="M3 18.4v-2.796a4.3 4.3 0 00.713.31A26.226 26.226 0 0012 17.25c2.892 0 5.68-.468 8.287-1.335.252-.084.49-.189.713-.311V18.4c0 1.452-1.047 2.728-2.523 2.923-2.12.282-4.282.427-6.477.427a49.19 49.19 0 01-6.477-.427C4.047 21.128 3 19.852 3 18.4z" />
-                              </svg>
-                              &nbsp;
-                              {jobPosting.workingType?.typeName}
-                            </div>
+              <div className="fixed inset-[0px] bg-black bg-opacity-25" />
+            </Transition.Child>
 
-                            <div className="font-mulish flex items-center text-gray-800">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-3 w-3 mr-1"
-                                viewBox="0 0 20 20"
-                                fill="currentColor"
-                              >
-                                <path
-                                  fillRule="evenodd"
-                                  d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
-                                  clipRule="evenodd"
-                                />
-                              </svg>
-                              {jobPosting.city?.cityName}
-                            </div>
-                          </div>
-                          <div className="space-y-4 text-sm sm:mt-0 sm:space-y-2">
-                            <div className="flex items-center font-mulish text-gray-800">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-3 w-3 mr-1"
-                                viewBox="0 0 20 20"
-                                fill="currentColor"
-                              >
-                                <path
-                                  fillRule="evenodd"
-                                  d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
-                                  clipRule="evenodd"
-                                />
-                              </svg>
-                              {new Date(
-                                jobPosting.applicationDeadline
-                              ).toDateString()}
-                            </div>
-                          </div>
-                        </div>
+            <div className="fixed inset-[0px] z-40 flex">
+              <Transition.Child
+                as={Fragment}
+                enter="transition ease-in-out duration-300 transform"
+                enterFrom="translate-x-full"
+                enterTo="translate-x-0"
+                leave="transition ease-in-out duration-300 transform"
+                leaveFrom="translate-x-0"
+                leaveTo="translate-x-full"
+              >
+                <Dialog.Panel className="relative ml-auto flex h-full w-full max-w-xs flex-col overflow-y-auto bg-white py-2 pb-6 shadow-xl">
+                  <div className="flex items-center justify-between px-4">
+                    <h2 className="text-lg font-medium text-gray-900">
+                      Filters
+                    </h2>
+                    <button
+                      type="button"
+                      className="-mr-1 flex h-5 w-5 items-center justify-center rounded-md bg-white p-1 text-gray-400"
+                      onClick={() => setMobileFiltersOpen(false)}
+                    >
+                      <span className="sr-only">Close menu</span>
+                      <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                    </button>
+                  </div>
+
+                  {/* Filters job titles*/}
+                  <form className="mt-2 border-t border-gray-200 divide-y p-0.5">
+                    <div>
+                      <h3 className="sr-only">Cities</h3>
+                      <div className="font-bold text-sm text-left ml-1 mt-1 mb-1">
+                        City
                       </div>
-                    </Link>
-                  </li>
-                ))}
-            </ul>
-            <div className="font-mulish flex mt-2 justify-between items-center">
-              <p className="text-sm text-gray-700">
-                Showed{" "}
-                <span className="font-medium">{indexOfFirstItem + 1}</span> to{" "}
-                <span className="font-medium">
-                  {Math.min(indexOfLastItem, currentJobPostings.length)}
-                </span>{" "}
-                of{" "}
-                <span className="font-medium">{currentJobPostings.length}</span>{" "}
-                results
-              </p>
-              <ol className="flex justify-center gap-1 text-xs font-medium">
-                <li>
-                  <button
-                    className="inline-flex h-5 w-5 items-center justify-center rounded border border-gray-300 bg-white text-gray-900 rtl:rotate-180"
-                    onClick={goToPreviousPage}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-3 w-3"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </button>
-                </li>
-                {Array.from({ length: pageCount }).map((_, index) => {
-                  if (pageCount <= 5) {
-                    // Sayfa sayısı 5 veya daha az ise tüm sayfaları göster
-                    return (
-                      <li key={index}>
-                        <button
-                          className={`block h-5 w-5 rounded ${
-                            currentPage === index + 1
-                              ? "border-blue-600 bg-blue-600 text-white"
-                              : "border border-gray-300 bg-white text-center leading-8 text-gray-900"
-                          }`}
-                          onClick={() => goToPage(index + 1)}
-                        >
-                          {index + 1}
-                        </button>
-                      </li>
-                    );
-                  } else {
-                    // Sayfa sayısı 5'ten büyükse özel düzenleme yap
-                    if (
-                      index === 0 ||
-                      index === pageCount - 1 ||
-                      index === 1 ||
-                      index === currentPage - 1 ||
-                      index === currentPage ||
-                      index === currentPage + 1
-                    ) {
-                      // İlk sayfa, son sayfa, 1, mevcut sayfa ve bir sonraki sayfayı göster
-                      return (
-                        <li key={index}>
-                          <button
-                            className={`block h-5 w-5 rounded ${
-                              currentPage === index + 1
-                                ? "border-blue-600 bg-blue-600 text-white"
-                                : "border border-gray-300 bg-white text-center leading-8 text-gray-900"
-                            }`}
-                            onClick={() => goToPage(index + 1)}
-                          >
-                            {index + 1}
-                          </button>
-                        </li>
-                      );
-                    } else if (index === 2 && currentPage > 4) {
-                      return (
-                        <li key={index}>
-                          <span className="block h-5 w-5 text-center leading-8 text-gray-900">
-                            ...
-                          </span>
-                        </li>
-                      );
-                    }
-                  }
-                })}
+                      <div className="absolute mb-2 ml-1">
+                        <label htmlFor="Search" className="sr-only">
+                          {" "}
+                          Search{" "}
+                        </label>
 
-                <li>
-                  <button
-                    className="inline-flex h-5 w-5 items-center justify-center rounded border border-gray-300 bg-white text-gray-900 rtl:rotate-180"
-                    onClick={goToNextPage}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-3 w-3"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                        clipRule="evenodd"
+                        <input
+                          type="text"
+                          id="MobileSearchCity"
+                          value={citySearch}
+                          onChange={(e) => setCitySearch(e.target.value)}
+                          placeholder="Search city"
+                          className="w-[212px] border-2 border-gray-200 py-[6px] pl-2 shadow-sm sm:text-sm"
+                        />
+
+                        <span className="absolute inset-y-[0px] end-[0px] grid place-content-center">
+                          <button
+                            type="button"
+                            className="text-gray-600 hover:text-gray-700 p-1"
+                          >
+                            <span className="sr-only">Search</span>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              strokeWidth="1.5"
+                              stroke="currentColor"
+                              className="h-3 w-3"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+                              />
+                            </svg>
+                          </button>
+                        </span>
+                      </div>
+                      <ul
+                        role="list"
+                        className="px-1 py-[48px] font-medium text-left overflow-y-auto max-h-11"
+                      >
+                        {cities
+                          .filter((city) =>
+                            city.cityName
+                              .toLowerCase()
+                              .includes(citySearch.toLowerCase())
+                          )
+                          .map((city) => (
+                            <li className="mb-2" key={city.cityId}>
+                              <label className="flex items-center hover:cursor-pointer hover:underline">
+                                <input
+                                  type="checkbox"
+                                  id={city.cityId}
+                                  className="h-3 w-3 rounded border-gray-300"
+                                  onChange={() =>
+                                    handleCityChange(city.cityName)
+                                  }
+                                  checked={selectedCities.includes(
+                                    city.cityName
+                                  )}
+                                />
+                                <span className="ml-2 text-sm text-gray-800 font-mulish">
+                                  {city.cityName}
+                                </span>
+                              </label>
+                            </li>
+                          ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <h3 className="sr-only">Job Titles</h3>
+                      <div className="font-bold text-sm text-left ml-1 mt-1 mb-1">
+                        Job Title
+                      </div>
+                      <div className="absolute mb-2 ml-1">
+                        <label htmlFor="Search" className="sr-only">
+                          {" "}
+                          Search{" "}
+                        </label>
+
+                        <input
+                          type="text"
+                          id="MobileSearchTitle"
+                          value={titleSearch}
+                          onChange={(e) => setTitleSearch(e.target.value)}
+                          placeholder="Search title"
+                          className="w-[212px] border-2 border-gray-200 py-[6px] pl-2 shadow-sm sm:text-sm"
+                        />
+
+                        <span className="absolute inset-y-[0px] end-[0px] grid place-content-center">
+                          <button
+                            type="button"
+                            className="text-gray-600 hover:text-gray-700 p-1"
+                          >
+                            <span className="sr-only">Search</span>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              strokeWidth="1.5"
+                              stroke="currentColor"
+                              className="h-3 w-3"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+                              />
+                            </svg>
+                          </button>
+                        </span>
+                      </div>
+                      <ul
+                        role="list"
+                        className="px-1 py-[48px] font-medium text-left overflow-y-auto max-h-11"
+                      >
+                        {jobTitles
+                          .filter((jobTitle) =>
+                            jobTitle.jobTitleName
+                              .toLowerCase()
+                              .includes(titleSearch.toLowerCase())
+                          )
+                          .map((jobTitle) => (
+                            <li className="mb-2" key={jobTitle.titleId}>
+                              <label className="flex items-center hover:cursor-pointer hover:underline">
+                                <input
+                                  type="checkbox"
+                                  id={jobTitle.titleId}
+                                  className="h-3 w-3 rounded border-gray-300"
+                                  onChange={() =>
+                                    handleJobTitleChange(jobTitle.jobTitleName)
+                                  }
+                                  checked={selectedJobTitles.includes(
+                                    jobTitle.jobTitleName
+                                  )}
+                                />
+                                <span className="ml-2 text-sm text-gray-800 font-mulish">
+                                  {jobTitle.jobTitleName}
+                                </span>
+                              </label>
+                            </li>
+                          ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <h3 className="sr-only">Working Types</h3>
+                      <ul
+                        role="list"
+                        className="px-1 py-2 font-medium  text-left"
+                      >
+                        <div className="font-bold text-sm mb-2">
+                          Working Type
+                        </div>
+                        {workingTypes
+                          .filter((workingType) =>
+                            workingType.typeName
+                              .toLowerCase()
+                              .includes(typeSearch.toLowerCase())
+                          )
+                          .map((workingType) => (
+                            <li
+                              className="mb-2"
+                              key={workingType.workingTypeId}
+                            >
+                              <label className="flex items-center hover:cursor-pointer hover:underline">
+                                <input
+                                  type="checkbox"
+                                  id={workingType.workingTypeId}
+                                  className="h-3 w-3 rounded border-gray-300"
+                                  onChange={() =>
+                                    handleWorkingTypeChange(
+                                      workingType.typeName
+                                    )
+                                  }
+                                  checked={selectedWorkingTypes.includes(
+                                    workingType.typeName
+                                  )}
+                                />
+                                <span className="ml-2 text-sm text-gray-800 font-mulish">
+                                  {workingType.typeName}
+                                </span>
+                              </label>
+                            </li>
+                          ))}
+                      </ul>
+                    </div>
+                  </form>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </Dialog>
+        </Transition.Root>
+
+        {/*--------------  Desktop icerikleri    ----------------*/}
+        <main className="mx-auto max-w-[1248px] px-2 sm:px-3 lg:px-4">
+          <div className="flex items-baseline justify-between font-mulish border-b border-gray-300 pb-2 pt-6">
+            <div className="relative">
+              <span className="contentTitle-1 relative text-sm font-[800] z-10 text-gray-800 sm:text-2xl">
+                Job Postings
+              </span>
+              <span className="hidden lg:block absolute w-full h-2 bg-gradient-to-tr from-cyan-50 to-blue-600 rounded-full top-[18px] left-[0px] z-[0px] animate-line"></span>
+            </div>
+
+            <div className="flex items-center">
+              <Menu as="div" className="relative inline-block text-left">
+                <Menu.Button className="group inline-flex justify-center text-gray-700 text-sm font-bold ">
+                  <div className="flex bg-white border-2 px-4 py-[4px]">
+                    Sort
+                    <ChevronDownIcon
+                      className="-mr-1 ml-1 h-3 w-3 flex-shrink-0 text-gray-400"
+                      aria-hidden="true"
+                    />
+                  </div>
+                </Menu.Button>
+
+                <Transition
+                  as={Fragment}
+                  enter="transition ease-out duration-100"
+                  enterFrom="transform opacity-0 scale-95"
+                  enterTo="transform opacity-100 scale-100"
+                  leave="transition ease-in duration-75"
+                  leaveFrom="transform opacity-100 scale-100"
+                  leaveTo="transform opacity-0 scale-95"
+                >
+                  {/*-----------   Sort icerikleri  ---------------- */}
+                  <Menu.Items className="absolute right-0 z-10 mt-1 w-8 origin-top-right rounded-md bg-white shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none">
+                    <div className="py-1">
+                      {sortOptions.map((option) => (
+                        <Menu.Item className="items-center" key={option.value}>
+                          <label
+                            htmlFor={option.value}
+                            className={classNames(
+                              "block w-full h-5 font-medium text-center text-sm hover:cursor-pointer",
+                              option.value === sortOption
+                                ? "text-gray-900 hover:bg-gray-50"
+                                : "text-gray-500 hover:bg-gray-50"
+                            )}
+                          >
+                            <input
+                              type="radio"
+                              id={option.value}
+                              onChange={() => handleSortOptions(option.value)}
+                              checked={option.value === sortOption}
+                              className="hidden"
+                            />
+                            {option.name}
+                          </label>
+                        </Menu.Item>
+                      ))}
+                    </div>
+                  </Menu.Items>
+                </Transition>
+              </Menu>
+
+              <button
+                type="button"
+                className="-m-2 ml-3 p-1 text-gray-400 hover:text-gray-500 sm:ml-3 lg:hidden"
+                onClick={() => setMobileFiltersOpen(true)}
+              >
+                <span className="sr-only">Filters</span>
+                <FunnelIcon className="h-3 w-3" aria-hidden="true" />
+              </button>
+            </div>
+          </div>
+
+          <section aria-labelledby="filter-heading" className="pb-6 pt-2">
+            <h2 id="filter-heading" className="sr-only">
+              Filters
+            </h2>
+
+            <div className="flex grid-cols-1 gap-x-[0px] gap-y-2 lg:gap-x-6 lg:grid-cols-2">
+              {/*-----------------------   Desktop Filters Icerikleri--------------------------*/}
+              <div className="sm:w-1/5">
+                <form className="bg-white hidden lg:block border rounded-md shadow-md divide-y p-0.5">
+                  <div>
+                    <h3 className="sr-only">Cities</h3>
+                    <div className="font-bold text-sm text-left ml-1 mt-1 mb-1">
+                      City
+                    </div>
+                    <div className="relative mb-2">
+                      <label htmlFor="Search" className="sr-only">
+                        {" "}
+                        Search{" "}
+                      </label>
+
+                      <input
+                        type="text"
+                        id="SearchCity"
+                        value={citySearch}
+                        onChange={(e) => setCitySearch(e.target.value)}
+                        placeholder="Search city"
+                        className="w-[212px] border-2 border-gray-200 py-[6px] pl-2 shadow-sm sm:text-sm"
                       />
-                    </svg>
-                  </button>
-                </li>
-              </ol>
+
+                      <span className="absolute inset-y-[0px] end-[0px] grid w-3 place-content-center">
+                        <button
+                          type="button"
+                          className="text-gray-600 hover:text-gray-700 p-1 mr-5"
+                        >
+                          <span className="sr-only">Search</span>
+
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth="1.5"
+                            stroke="currentColor"
+                            className="h-2 w-2"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+                            />
+                          </svg>
+                        </button>
+                      </span>
+                    </div>
+                    <ul
+                      role="list"
+                      className="px-1 py-[6px] font-medium text-left overflow-y-auto max-h-11"
+                    >
+                      {cities
+                        .filter((city) =>
+                          city.cityName
+                            .toLowerCase()
+                            .includes(citySearch.toLowerCase())
+                        )
+                        .map((city) => (
+                          <li className="mb-2" key={city.cityId}>
+                            <label className="flex items-center hover:cursor-pointer hover:underline">
+                              <input
+                                type="checkbox"
+                                id={city.cityId}
+                                className="h-3 w-3 rounded border-gray-300"
+                                onChange={() => handleCityChange(city.cityName)}
+                                checked={selectedCities.includes(city.cityName)}
+                              />
+                              <span className="ml-2 text-sm text-gray-800 font-mulish">
+                                {city.cityName}
+                              </span>
+                            </label>
+                          </li>
+                        ))}
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h3 className="sr-only">Job Titles</h3>
+                    <div className="font-bold text-sm text-left ml-1 mt-1 mb-1">
+                      Job Title
+                    </div>
+                    <div className="relative mb-2">
+                      <label htmlFor="Search" className="sr-only">
+                        {" "}
+                        Search{" "}
+                      </label>
+
+                      <input
+                        type="text"
+                        id="SearchTitle"
+                        value={titleSearch}
+                        onChange={(e) => setTitleSearch(e.target.value)}
+                        placeholder="Search title"
+                        className="w-[212px] border-2 border-gray-200 py-[6px] pl-2 shadow-sm sm:text-sm"
+                      />
+
+                      <span className="absolute inset-y-[0px] end-[0px] grid w-3 place-content-center">
+                        <button
+                          type="button"
+                          className="text-gray-600 hover:text-gray-700 p-1 mr-5"
+                        >
+                          <span className="sr-only">Search</span>
+
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth="1.5"
+                            stroke="currentColor"
+                            className="h-2 w-2"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+                            />
+                          </svg>
+                        </button>
+                      </span>
+                    </div>
+                    <ul
+                      role="list"
+                      className="px-1 py-[6px] font-medium text-left overflow-y-auto max-h-11"
+                    >
+                      {jobTitles
+                        .filter((jobTitle) =>
+                          jobTitle.jobTitleName
+                            .toLowerCase()
+                            .includes(titleSearch.toLowerCase())
+                        )
+                        .map((jobTitle) => (
+                          <li className="mb-2" key={jobTitle.titleId}>
+                            <label className="flex items-center hover:cursor-pointer hover:underline">
+                              <input
+                                type="checkbox"
+                                id={jobTitle.titleId}
+                                className="h-3 w-3 rounded border-gray-300"
+                                onChange={() =>
+                                  handleJobTitleChange(jobTitle.jobTitleName)
+                                }
+                                checked={selectedJobTitles.includes(
+                                  jobTitle.jobTitleName
+                                )}
+                              />
+                              <span className="ml-2 text-sm text-gray-800 font-mulish">
+                                {jobTitle.jobTitleName}
+                              </span>
+                            </label>
+                          </li>
+                        ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <h3 className="sr-only">Working Types</h3>
+                    <ul
+                      role="list"
+                      className="px-1 py-2 font-medium  text-left"
+                    >
+                      <div className="font-bold text-sm mb-2">Working Type</div>
+                      {workingTypes
+                        .filter((workingType) =>
+                          workingType.typeName
+                            .toLowerCase()
+                            .includes(typeSearch.toLowerCase())
+                        )
+                        .map((workingType) => (
+                          <li className="mb-2" key={workingType.workingTypeId}>
+                            <label className="flex items-center hover:cursor-pointer hover:underline">
+                              <input
+                                type="checkbox"
+                                id={workingType.workingTypeId}
+                                className="h-3 w-3 rounded border-gray-300"
+                                onChange={() =>
+                                  handleWorkingTypeChange(workingType.typeName)
+                                }
+                                checked={selectedWorkingTypes.includes(
+                                  workingType.typeName
+                                )}
+                              />
+                              <span className="ml-2 text-sm text-gray-800 font-mulish">
+                                {workingType.typeName}
+                              </span>
+                            </label>
+                          </li>
+                        ))}
+                    </ul>
+                  </div>
+                </form>
+              </div>
+
+              {/* Job Posting Card */}
+              <div className="sm:w-4/5">
+                <div>
+                  {(selectedCities.length > 0 ||
+                    selectedJobTitles.length > 0 ||
+                    selectedWorkingTypes.length > 0) && (
+                    <div className="flex justify-start space-x-3">
+                      <span className="font-bold text-sm">
+                        Selected filters&nbsp;(
+                        {selectedCities.length +
+                          selectedJobTitles.length +
+                          selectedWorkingTypes.length}
+                        )
+                      </span>
+                      <span className="text-indigo-500 text-sm">
+                        <button onClick={(e) => handleClearFilters(e)}>
+                          Clear filters
+                        </button>
+                      </span>
+                    </div>
+                  )}
+                  <div className="mt-2 flex justify-start">
+                    {/* Display selected filters */}
+                    <div className="space-y-1">
+                      {selectedCities.map((city) => (
+                        <SelectedFilterBadge
+                          key={city}
+                          filter={city}
+                          onRemove={handleCityChange}
+                        />
+                      ))}
+                      {selectedJobTitles.map((jobTitle) => (
+                        <SelectedFilterBadge
+                          key={jobTitle}
+                          filter={jobTitle}
+                          onRemove={handleJobTitleChange}
+                        />
+                      ))}
+                      {selectedWorkingTypes.map((workingType) => (
+                        <SelectedFilterBadge
+                          key={workingType}
+                          filter={workingType}
+                          onRemove={handleWorkingTypeChange}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <JobPostingCard
+                  selectedCities={selectedCities}
+                  selectedJobTitles={selectedJobTitles}
+                  selectedWorkingTypes={selectedWorkingTypes}
+                  sortOption={sortOption}
+                />
+              </div>
             </div>
           </section>
-        </div>
+        </main>
       </div>
     </div>
   );

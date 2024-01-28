@@ -30,6 +30,7 @@ export default function AppliedJobList() {
     if (letterUpdated) {
       setLetterUpdated(false);
     }
+    console.log(appliedJobs);
   }, [letterUpdated]);
 
   useEffect(() => {
@@ -58,7 +59,6 @@ export default function AppliedJobList() {
             return appliedJob;
           })
         );
-
         setAppliedJobs(jobsWithPhotos);
       } catch (error) {
         console.error("An error occurred while fetching applied jobs", error);
@@ -114,11 +114,11 @@ export default function AppliedJobList() {
               <thead className="text-[15px] font-bold border-b bg-white">
                 <tr>
                   <th className="py-2 px-3">Company & Job</th>
-                  <th className="py-2 px-3">Listing Status</th>
+                  <th className="py-2 px-3 text-center">Listing Status</th>
                   <th className="py-2 px-3">Resume</th>
                   <th className="py-2 px-3">Letter</th>
                   <th className="py-2 px-3">Applied at</th>
-                  <th className="py-2 px-3"></th>
+                  <th className="py-2 px-3 text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="text-[14px] font-medium divide-y">
@@ -146,9 +146,9 @@ export default function AppliedJobList() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-5 py-2 whitespace-nowrap">
+                    <td className="py-2 whitespace-nowrap text-center">
                       <span
-                        className={`inline-flex items-center rounded-md px-[7px] py-[3px] font-bold text-sm ${
+                        className={`inline-flex items-center rounded-full px-[7px] py-[3px] font-bold text-sm ${
                           appliedJob.jobPosting.active === true
                             ? "text-green-600 bg-green-50/60 ring-1 ring-green-600/30 tracking-wide"
                             : "text-red-700 bg-red-50/60 ring-1 ring-red-900/20 tracking-wide"
@@ -170,11 +170,8 @@ export default function AppliedJobList() {
                     <td className="px-3 py-2 whitespace-nowrap">
                       {formatDateTime(new Date(appliedJob.appliedDate))}
                     </td>
-                    <td className="px-3 whitespace-nowrap">
-                      <Menu
-                        as="div"
-                        className="relative inline-block text-left"
-                      >
+                    <td className="whitespace-nowrap text-center">
+                      <Menu as="div" className="relative inline-block">
                         <div>
                           <Menu.Button>
                             <svg

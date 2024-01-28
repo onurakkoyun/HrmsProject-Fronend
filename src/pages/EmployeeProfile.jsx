@@ -171,10 +171,6 @@ export default function EmployeeProfile() {
           };
           setPopupMessage(message);
 
-          setTimeout(() => {
-            window.location.reload();
-          }, 3000);
-
           const fileInput = document.getElementById("file-upload");
           if (fileInput) {
             fileInput.value = "";

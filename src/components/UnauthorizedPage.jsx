@@ -1,4 +1,4 @@
-import React from 'react'
+import React from "react";
 
 export default function UnauthorizedPage() {
   return (
@@ -9,19 +9,20 @@ export default function UnauthorizedPage() {
 
           <p className="flex flex-col text-2xl font-bold tracking-tight text-gray-900 sm:text-4xl">
             <span>Vigilate Captain!</span>
+            <br />
             <span>🫡</span>
           </p>
 
           <p className="mt-4 text-gray-500">Unauthorized Access Denied</p>
 
           <a
-            href="/home"
-            className="inline-block px-5 py-3 mt-6 text-sm font-medium text-white bg-indigo-600 rounded hover:text-white hover:bg-indigo-700 focus:outline-none focus:ring"
+            href="/"
+            className="inline-block rounded bg-[#5a2bdb] px-5 py-2 text-sm font-medium text-white hover:text-white focus:outline-none focus:ring"
           >
             Go Back Home
           </a>
         </div>
       </div>
     </div>
-  )
+  );
 }

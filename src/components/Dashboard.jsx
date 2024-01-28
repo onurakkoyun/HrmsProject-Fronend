@@ -1,6 +1,6 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
-import Navi2 from "./Navi2";
+import Navi from "./Navi";
 import Home from "../pages/Home";
 import RegisterEmployee from "../pages/RegisterEmployee";
 import RegisterEmployer from "../pages/RegisterEmployer";
@@ -21,17 +21,21 @@ import CoverLetterList from "../pages/CoverLetterList";
 import JobPostingApplicantsList from "../pages/JobPostingApplicantsList";
 import ApplicationPreview from "../pages/ApplicationPreview";
 import EmployerProfile from "../pages/EmployerProfile";
+import ResetPasword from "../pages/ResetPasword";
+import NotFoundPage from "./NotFoundPage";
+import EditJobPosting from "./../pages/EditJobPosting";
 
 export default function Dashboard() {
   return (
     <div>
-      <Navi2 />
+      <Navi />
 
       <div>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/home" element={<Home />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/password/reset" element={<ResetPasword />} />
           <Route path="/aboutUs" element={<AboutUs />} />
           <Route
             path="/application/:applicationId/resume/:resumeId/preview"
@@ -66,7 +70,12 @@ export default function Dashboard() {
           <Route path="/apply/jobposting/:id" element={<ApplyToJobPosting />} />
           <Route path="/jobPostings/listall" element={<JobPostingsList />} />
           <Route path="/jobPosting/:id" element={<JobPostingDetail />} />
+          <Route
+            path="/employer/:id/jobPosting/:jobPostingId/edit"
+            element={<EditJobPosting />}
+          />
           <Route path="/unauthorized" element={<UnauthorizedPage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </div>
 

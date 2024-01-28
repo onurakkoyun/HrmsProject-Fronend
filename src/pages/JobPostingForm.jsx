@@ -26,7 +26,6 @@ export default function JobPostingForm() {
   const [jobTitles, setJobTitles] = useState([]); // Renamed state to jobTitles
   const [cities, setCities] = useState([]);
   const [workingTypes, setWorkingTypes] = useState([]);
-  const [wageCurrency, setWageCurrency] = useState("₺");
   const [message, setMessage] = useState("");
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
@@ -65,17 +64,14 @@ export default function JobPostingForm() {
     formik.setFieldValue(fieldName, value);
   };
 
-  const handleCurrencyChange = (event) => {
-    setWageCurrency(event.target.value);
-  };
-
   const initialValues = {
     employer: { id: id },
-    jobTitle: "",
-    city: "",
-    workingType: "",
+    jobTitle: { titleId: "", jobTitleName: "" },
+    city: { cityId: "", cityName: "" },
+    workingType: { workingTypeId: "", typeName: "" },
     salaryMin: "",
     salaryMax: "",
+    salaryCurrency: "",
     availablePosition: "",
     applicationDeadline: "",
     jobSummary: "",
@@ -84,9 +80,15 @@ export default function JobPostingForm() {
   };
 
   const validationSchema = Yup.object({
-    jobTitle: Yup.object().required("Required Field"),
-    city: Yup.object().required("Required Field"),
-    workingType: Yup.object().required("Required Field"),
+    jobTitle: Yup.object().shape({
+      titleId: Yup.number().required("Required Field"),
+    }),
+    city: Yup.object().shape({
+      cityId: Yup.number().required("Required Field"),
+    }),
+    workingType: Yup.object().shape({
+      workingTypeId: Yup.number().required("Required Field"),
+    }),
     availablePosition: Yup.number()
       .positive("Not a Positive Number")
       .required("Required Field"),
@@ -103,14 +105,9 @@ export default function JobPostingForm() {
   const onSubmit = async (values, { resetForm }) => {
     setMessage("");
     setSuccess(false);
-    const jobPostingData = {
-      ...values,
-      salaryMin: `${wageCurrency}${values.salaryMin}`,
-      salaryMax: `${wageCurrency}${values.salaryMax}`,
-    };
 
     if (currentUser.id.toString() === id) {
-      jobPostingService.addJobPosting(jobPostingData).then(
+      jobPostingService.addJobPosting(values).then(
         (response) => {
           setSuccess(response.data.success);
           setMessage(response.data.message);
@@ -207,18 +204,20 @@ export default function JobPostingForm() {
                         ))}
                       </select>
                     </div>
-                    {formik.errors.jobTitle && formik.touched.jobTitle && (
-                      <span>
-                        <Label
-                          basic
-                          pointing
-                          color="red"
-                          className="orbitron"
-                          content={formik.errors.jobTitle}
-                        />
-                        <br />
-                      </span>
-                    )}
+                    <div className="grid justify-items-start">
+                      {(formik.errors.jobTitle?.titleId || "") &&
+                        (formik.touched.jobTitle?.titleId || "") && (
+                          <span>
+                            <Label
+                              basic
+                              pointing
+                              color="red"
+                              className="orbitron"
+                              content={formik.errors.jobTitle?.titleId || ""}
+                            />
+                          </span>
+                        )}
+                    </div>
                     <br />
 
                     <div className="flex flex-col mb-1">
@@ -249,18 +248,20 @@ export default function JobPostingForm() {
                       </select>
                     </div>
 
-                    {formik.errors.city && formik.touched.city && (
-                      <span>
-                        <Label
-                          basic
-                          pointing
-                          color="red"
-                          className="orbitron"
-                          content={formik.errors.city}
-                        />
-                        <br />
-                      </span>
-                    )}
+                    <div className="grid justify-items-start">
+                      {(formik.errors.city?.cityId || "") &&
+                        (formik.touched.city?.cityId || "") && (
+                          <span>
+                            <Label
+                              basic
+                              pointing
+                              color="red"
+                              className="orbitron"
+                              content={formik.errors.city?.cityId || ""}
+                            />
+                          </span>
+                        )}
+                    </div>
                     <br />
 
                     <div className="flex flex-col mb-1">
@@ -297,19 +298,22 @@ export default function JobPostingForm() {
                       </select>
                     </div>
 
-                    {formik.errors.workingType &&
-                      formik.touched.workingType && (
-                        <span>
-                          <Label
-                            basic
-                            pointing
-                            color="red"
-                            className="orbitron"
-                            content={formik.errors.workingType}
-                          />
-                          <br />
-                        </span>
-                      )}
+                    <div className="grid justify-items-start">
+                      {(formik.errors.workingType?.workingTypeId || "") &&
+                        (formik.touched.workingType?.workingTypeId || "") && (
+                          <span>
+                            <Label
+                              basic
+                              pointing
+                              color="red"
+                              className="orbitron"
+                              content={
+                                formik.errors.workingType?.workingTypeId || ""
+                              }
+                            />
+                          </span>
+                        )}
+                    </div>
                     <br />
 
                     <div className="flex flex-col mb-1">
@@ -333,20 +337,21 @@ export default function JobPostingForm() {
                         }
                         value={formik.values.availablePosition}
                       />
+                      <div className="grid justify-items-start">
+                        {(formik.errors.availablePosition || "") &&
+                          (formik.touched.availablePosition || "") && (
+                            <span>
+                              <Label
+                                basic
+                                pointing
+                                color="red"
+                                className="orbitron"
+                                content={formik.errors.availablePosition || ""}
+                              />
+                            </span>
+                          )}
+                      </div>
                     </div>
-                    {formik.errors.availablePosition &&
-                      formik.touched.availablePosition && (
-                        <span>
-                          <Label
-                            basic
-                            pointing
-                            color="red"
-                            className="orbitron"
-                            content={formik.errors.availablePosition}
-                          />
-                          <br />
-                        </span>
-                      )}
                     <br />
                     <div className="w-[394px] flex flex-col mb-1 mr-[18px]">
                       <label
@@ -371,22 +376,23 @@ export default function JobPostingForm() {
                         value={formik.values.applicationDeadline}
                         min={new Date().toISOString().split("T")[0]} // Bugünün tarihini alır
                       />
+                      <div className="grid justify-items-start">
+                        {(formik.errors.applicationDeadline || "") &&
+                          (formik.touched.applicationDeadline || "") && (
+                            <span>
+                              <Label
+                                basic
+                                pointing
+                                color="red"
+                                className="orbitron"
+                                content={
+                                  formik.errors.applicationDeadline || ""
+                                }
+                              />
+                            </span>
+                          )}
+                      </div>
                     </div>
-
-                    {formik.errors.applicationDeadline &&
-                      formik.touched.applicationDeadline && (
-                        <span>
-                          <Label
-                            basic
-                            pointing
-                            color="red"
-                            className="orbitron"
-                            content={formik.errors.applicationDeadline}
-                          />
-                          <br />
-                          <br />
-                        </span>
-                      )}
                     <br />
                     <div className="flex flex-row mb-1">
                       <div className="w-[212px] mr-2">
@@ -436,9 +442,11 @@ export default function JobPostingForm() {
                           Currency
                         </label>
                         <select
-                          name="wageCurrency"
-                          onChange={handleCurrencyChange} // onChange olayını burada tanımladığımız event handler ile eşleştiriyoruz
-                          value={wageCurrency}
+                          name="salaryCurrency"
+                          onChange={(event) =>
+                            handleChange("salaryCurrency", event.target.value)
+                          }
+                          value={formik.values.salaryCurrency}
                           className="mt-1 rounded-md border border-gray-500 bg-transparent focus:outline-none focus:border-blue-600 focus:ring-0.5 focus:ring-blue-400 p-2 pr-3 pe-12 text-md shadow-sm"
                         >
                           <option value="₺">₺</option>
@@ -471,20 +479,21 @@ export default function JobPostingForm() {
                         }
                         value={formik.values.jobSummary}
                       />
+                      <div className="grid justify-items-start">
+                        {(formik.errors.jobSummary || "") &&
+                          (formik.touched.jobSummary || "") && (
+                            <span>
+                              <Label
+                                basic
+                                pointing
+                                color="red"
+                                className="orbitron"
+                                content={formik.errors.jobSummary || ""}
+                              />
+                            </span>
+                          )}
+                      </div>
                     </div>
-                    {formik.errors.jobSummary && formik.touched.jobSummary && (
-                      <span>
-                        <Label
-                          basic
-                          pointing
-                          color="red"
-                          className="orbitron"
-                          content={formik.errors.jobSummary}
-                        />
-                        <br />
-                        <br />
-                      </span>
-                    )}
                     <br />
                     <div>
                       <label className="font-poppins font-medium text-md text-gray-800">
@@ -516,21 +525,21 @@ export default function JobPostingForm() {
                           }
                           value={formik.values.jobDescription}
                         />
+                        <div className="grid justify-items-start">
+                          {(formik.errors.jobDescription || "") &&
+                            (formik.touched.jobDescription || "") && (
+                              <span>
+                                <Label
+                                  basic
+                                  pointing
+                                  color="red"
+                                  className="orbitron"
+                                  content={formik.errors.jobDescription || ""}
+                                />
+                              </span>
+                            )}
+                        </div>
                       </div>
-                      {formik.errors.jobDescription &&
-                        formik.touched.jobDescription && (
-                          <span>
-                            <Label
-                              basic
-                              pointing
-                              color="red"
-                              className="orbitron"
-                              content={formik.errors.jobDescription}
-                            />
-                            <br />
-                            <br />
-                          </span>
-                        )}
                     </div>
                     <button
                       type="submit"

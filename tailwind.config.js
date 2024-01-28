@@ -69,7 +69,6 @@ module.exports = withMT({
           "Georgia",
           '"Times New Roman"',
           "Times",
-          "serif",
           "Cambria",
         ],
         mono: ["ui-monospace", "SFMono-Regular"],
@@ -93,6 +92,7 @@ module.exports = withMT({
         pt_sans: ["PT Sans", "sans-serif"],
         roboto_slab: ["Roboto Slab", "serif"],
         nova_square: ["Nova Square", "sans-serif"],
+        inter: ["Inter", "sans-serif"],
       },
       fontSize: {
         "4xl": "2.441rem",
