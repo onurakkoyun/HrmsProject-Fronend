@@ -69,6 +69,9 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
 
+### Back-End Section
+<a href="https://github.com/onurakkoyun/HrmsProject-Backend">GitHub Repository</a>
+
 ### Screenshots
 ![1-home-screen-1](https://github.com/onurakkoyun/HrmsProject-Frontend/assets/61190408/f6d4561e-9359-4b45-b8ce-9639c1bee24e)
 ![2-home-screen-2](https://github.com/onurakkoyun/HrmsProject-Frontend/assets/61190408/95f5ba5a-733a-446d-95ac-030418c0d2de)
